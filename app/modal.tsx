@@ -10,12 +10,9 @@ export default function ModalScreen() {
     //   </Link>
     // </ThemedView>
     <View className="flex-1 items-center justify-center bg-amber-50">
-      <Text className="text-xl font-bold text-red-800">
-        Welcome to Nativewind!
-      </Text>
+      <Text className="text-xl font-bold text-red-800">Welcome to Nativewind!</Text>
     </View>
-
-    );
+  );
 }
 
 const styles = StyleSheet.create({

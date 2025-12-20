@@ -4,3 +4,9 @@ export type Habit = {
   duration: number; // in minutes
   checkedToday: boolean | null;
 };
+
+export type Identity = {
+  id: string;
+  name: string;
+  habits: Habit[];
+};

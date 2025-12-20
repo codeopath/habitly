@@ -7,8 +7,8 @@ export default function HomeScreen() {
   const identity = 'I am a reader';
 
   const [habits, setHabits] = useState<Habit[]>([
-    { id: '1', title: 'I read today', checkedToday: null },
-    { id: '2', title: 'I reflected on what I read', checkedToday: null },
+    { id: '1', title: 'I read today', checkedToday: null, duration: 15 },
+    { id: '2', title: 'I reflected on what I read', checkedToday: null, duration: 15 },
   ]);
 
   const handleCheck = (habitId: string, value: boolean) => {

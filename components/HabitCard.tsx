@@ -9,10 +9,14 @@ type Props = {
 export default function HabitCard({ habit, onCheck }: Props) {
   return (
     <View className="mb-4 rounded-xl bg-gray-100 p-4 dark:bg-gray-900">
-      <Text className="mb-3 text-base font-medium text-gray-900 dark:text-gray-100">
-        {habit.title}
-      </Text>
-
+      <View className="flex flex-row flex-wrap items-center justify-between gap-2">
+        <Text className="mb-3 text-base font-medium text-gray-900 dark:text-gray-100">
+          {habit.title}
+        </Text>
+        <Text className="mb-3 text-base font-medium text-gray-900 dark:text-gray-100">
+          {habit.duration} minutes
+        </Text>
+      </View>
       {habit.checkedToday === null ? (
         <View className="space-y-2">
           <Pressable

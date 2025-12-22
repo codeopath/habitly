@@ -1,6 +1,6 @@
 import { View, Text, Pressable, TextInput } from 'react-native';
 import { useState } from 'react';
-import { Identity } from '../model/types';
+import { Habit, Identity } from '../model/types';
 
 export default function FirstHabitSelectionScreen({
   identity,
@@ -8,13 +8,13 @@ export default function FirstHabitSelectionScreen({
   onSkip,
 }: {
   identity: Identity;
-  onNext: (habit: string) => void;
+  onNext: (habit: Habit) => void;
   onSkip: () => void;
 }) {
-  const [selected, setSelected] = useState<string | null>(null);
-  const [customHabit, setCustomHabit] = useState('');
+  const [selected, setSelected] = useState<Habit | null>(null);
+  const [customHabit, setCustomHabit] = useState<Habit | null>(null);
 
-  const finalHabit = customHabit.trim() || selected;
+  const finalHabit = customHabit || selected;
   return (
     <View className="flex-1 bg-neutral-900 px-6 pt-16">
       {/* Progress */}
@@ -31,14 +31,13 @@ export default function FirstHabitSelectionScreen({
       {/* Habit list */}
       <View className="mt-8 space-y-3">
         {identity.habits.map((h) => {
-          const isSelected = selected === h.id;
+          const isSelected = selected?.id === h.id;
 
           return (
             <Pressable
               key={h.id}
               onPress={() => {
-                setSelected(h.id);
-                setCustomHabit('');
+                setSelected(h);
               }}
               className={`flex-row items-center rounded-xl px-4 py-4 ${
                 isSelected ? 'bg-neutral-700' : 'bg-neutral-800'
@@ -54,9 +53,9 @@ export default function FirstHabitSelectionScreen({
       <Text className="my-6 text-center text-sm text-neutral-500">Or type your own</Text>
 
       <TextInput
-        value={customHabit}
+        value={customHabit?.label}
         onChangeText={(t) => {
-          setCustomHabit(t);
+          setCustomHabit({ id: 'custom', label: t, icon: '🆕', checkedToday: null });
           setSelected(null);
         }}
         placeholder="Your first habit is..."

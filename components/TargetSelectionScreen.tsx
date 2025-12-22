@@ -1,4 +1,4 @@
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, ScrollView } from 'react-native';
 import { useEffect, useState } from 'react';
 import { fetchIdentities } from '../api/identities';
 import { Identity } from '../model/types';
@@ -36,7 +36,15 @@ export default function TargetSelectionScreen({
       <Text className="mt-2 text-sm text-neutral-400">Help us understand your needs better</Text>
 
       {/* Cards */}
-      <View className="mt-8 flex-row flex-wrap justify-between">
+      <ScrollView
+        className="mt-8 flex-1"
+        contentContainerStyle={{
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          justifyContent: 'space-between',
+          paddingBottom: 16,
+        }}
+        showsVerticalScrollIndicator={false}>
         {identities.map((t) => {
           const isSelected = selected?.id === t.id;
 
@@ -52,7 +60,7 @@ export default function TargetSelectionScreen({
             </Pressable>
           );
         })}
-      </View>
+      </ScrollView>
 
       {/* CTA */}
       <Pressable

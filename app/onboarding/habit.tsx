@@ -1,11 +1,12 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FirstHabitSelectionScreen from '../../components/FirstHabitSelectionScreen';
+import { Identity } from '../../model/types';
 
 export default function HabitRoute() {
   const router = useRouter();
   const { identity } = useLocalSearchParams<{ identity: string }>();
-  const parsedIdentity = identity ? JSON.parse(identity) : null;
+  const parsedIdentity: Identity = identity ? JSON.parse(identity) : null;
   return (
     <FirstHabitSelectionScreen
       identity={parsedIdentity}
@@ -16,8 +17,8 @@ export default function HabitRoute() {
       }}
       onNext={async (habit) => {
         await AsyncStorage.setItem('hasOnboarded', 'true');
+        parsedIdentity.habits = [habit];
         await AsyncStorage.setItem('identities', JSON.stringify([parsedIdentity]));
-        await AsyncStorage.setItem('firstHabit', habit);
         router.replace('/(tabs)');
       }}
     />

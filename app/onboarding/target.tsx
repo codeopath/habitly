@@ -1,16 +1,17 @@
 import { useRouter } from 'expo-router';
 import TargetSelectionScreen from '../../components/TargetSelectionScreen';
 
-
 export default function TargetRoute() {
   const router = useRouter();
 
   return (
     <TargetSelectionScreen
-      onNext={(target) => {
+      onNext={(identity) => {
         router.push({
           pathname: '/onboarding/habit',
-          params: { target },
+          params: {
+            identity: identity ? JSON.stringify(identity) : '',
+          },
         });
       }}
     />

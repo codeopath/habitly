@@ -1,12 +1,12 @@
 export type Habit = {
   id: string;
-  title: string;
-  duration: number; // in minutes
-  checkedToday: boolean | null;
+  label: string;
+  icon: string;
 };
 
 export type Identity = {
   id: string;
-  name: string;
+  label: string;
+  icon: string;
   habits: Habit[];
 };

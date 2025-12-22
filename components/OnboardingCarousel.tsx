@@ -17,7 +17,7 @@ const SLIDES: Slide[] = [
     title: 'Welcome',
     description: 'Build habits that last. Small actions, done consistently.',
     bg: 'bg-blue-900',
-    icon: '🔁',
+    icon: 'logo',
   },
   {
     key: 'create',

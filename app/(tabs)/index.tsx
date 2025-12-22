@@ -1,27 +1,21 @@
 import { View, Text, FlatList } from 'react-native';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Identity } from '../../model/types';
 import IdentityCard from '../../components/IdentityCard';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen() {
-  const [identities, setIdentities] = useState<Identity[]>([
-    {
-      id: 'identity-1',
-      name: 'I am an avid reader',
-      habits: [
-        { id: 'reader-1', title: 'I read today', checkedToday: null, duration: 15 },
-        { id: 'reader-2', title: 'I reflected on what I read', checkedToday: null, duration: 15 },
-      ],
-    },
-    {
-      id: 'identity-2',
-      name: 'I am healthy',
-      habits: [
-        { id: 'health-1', title: 'I exercised today', checkedToday: null, duration: 15 },
-        { id: 'health-2', title: 'I ate mindfully', checkedToday: null, duration: 15 },
-      ],
-    },
-  ]);
+  const [identities, setIdentities] = useState<Identity[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      const savedIdentities = await AsyncStorage.getItem('identities');
+      if (savedIdentities) {
+        setIdentities(JSON.parse(savedIdentities));
+      }
+    };
+    load();
+  }, []);
 
   const handleHabitCheck = (identityId: string, habitId: string, duration: number) => {
     setIdentities((prev) =>

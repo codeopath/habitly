@@ -11,7 +11,9 @@ export default function IdentityCard({ identity, onHabitCheck }: Props) {
   return (
     <View className="mb-10">
       <View className="mb-4">
-        <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100">{identity.name}</Text>
+        <Text className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          {identity.label}
+        </Text>
         <Text className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Showing up builds who you are.
         </Text>

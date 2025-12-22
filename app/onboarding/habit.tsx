@@ -11,12 +11,12 @@ export default function HabitRoute() {
       identity={parsedIdentity}
       onSkip={async () => {
         await AsyncStorage.setItem('hasOnboarded', 'true');
-        await AsyncStorage.setItem('target', parsedIdentity.id ?? '');
+        await AsyncStorage.setItem('identities', JSON.stringify([parsedIdentity]));
         router.replace('/(tabs)');
       }}
       onNext={async (habit) => {
         await AsyncStorage.setItem('hasOnboarded', 'true');
-        await AsyncStorage.setItem('target', parsedIdentity.id ?? '');
+        await AsyncStorage.setItem('identities', JSON.stringify([parsedIdentity]));
         await AsyncStorage.setItem('firstHabit', habit);
         router.replace('/(tabs)');
       }}

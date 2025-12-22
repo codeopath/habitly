@@ -1,15 +1,16 @@
 import { useRouter } from 'expo-router';
-import OnboardingIdentityScreen from '../../components/OnboardingIdentityScreen';
+import TargetSelectionScreen from '../../components/TargetSelectionScreen';
 
-export default function OnboardingIndex() {
+
+export default function TargetRoute() {
   const router = useRouter();
 
   return (
-    <OnboardingIdentityScreen
-      onNext={(identity) => {
+    <TargetSelectionScreen
+      onNext={(target) => {
         router.push({
-          pathname: '/onboarding/confirm',
-          params: { identity },
+          pathname: '/onboarding/habit',
+          params: { target },
         });
       }}
     />

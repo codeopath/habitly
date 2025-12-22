@@ -13,10 +13,5 @@ export default function Confirm() {
     router.replace('/(tabs)');
   };
 
-  return (
-    <OnboardingConfirmScreen
-      identity={identity!}
-      onFinish={finish}
-    />
-  );
+  return <OnboardingConfirmScreen identity={identity!} onFinish={finish} />;
 }

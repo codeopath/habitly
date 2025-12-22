@@ -1,16 +1,13 @@
 import { useRouter } from 'expo-router';
-import OnboardingIdentityScreen from '../../components/OnboardingIdentityScreen';
+import OnboardingCarousel from '../../components/OnboardingCarousel';
 
-export default function OnboardingIndex() {
+export default function CarouselRoute() {
   const router = useRouter();
 
   return (
-    <OnboardingIdentityScreen
-      onNext={(identity) => {
-        router.push({
-          pathname: '/onboarding/confirm',
-          params: { identity },
-        });
+    <OnboardingCarousel
+      onDone={() => {
+        router.replace('/onboarding/target');
       }}
     />
   );

@@ -1,9 +1,9 @@
 import { View, Text, Pressable } from 'react-native';
 
 export default function OnboardingConfirmScreen({
-                                                  identity,
-                                                  onFinish,
-                                                }: {
+  identity,
+  onFinish,
+}: {
   identity: string;
   onFinish: () => void;
 }) {
@@ -18,7 +18,8 @@ export default function OnboardingConfirmScreen({
       <Text className="mt-6 max-w-sm text-lg leading-relaxed text-neutral-600 dark:text-neutral-400">
         You don’t become this overnight.
         <Text className="font-semibold text-neutral-900 dark:text-neutral-100">
-          {' '}You become it by showing up.
+          {' '}
+          You become it by showing up.
         </Text>
       </Text>
 
@@ -28,8 +29,7 @@ export default function OnboardingConfirmScreen({
       {/* CTA */}
       <Pressable
         onPress={onFinish}
-        className="mb-6 rounded-2xl bg-neutral-900 py-4 shadow-lg dark:bg-neutral-100"
-      >
+        className="mb-6 rounded-2xl bg-neutral-900 py-4 shadow-lg dark:bg-neutral-100">
         <Text className="text-center text-base font-semibold text-white dark:text-neutral-900">
           Start showing up
         </Text>

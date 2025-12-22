@@ -10,8 +10,8 @@ const IDENTITIES = [
 ];
 
 export default function OnboardingIdentityScreen({
-                                                   onNext,
-                                                 }: {
+  onNext,
+}: {
   onNext: (identity: string) => void;
 }) {
   const [selected, setSelected] = useState<string | null>(null);
@@ -38,15 +38,13 @@ export default function OnboardingIdentityScreen({
                 isSelected
                   ? 'border-gray-900 bg-gray-100 dark:border-gray-100 dark:bg-gray-900'
                   : 'border-gray-200 dark:border-gray-800'
-              }`}
-            >
+              }`}>
               <Text
                 className={`text-base ${
                   isSelected
                     ? 'font-semibold text-gray-900 dark:text-gray-100'
                     : 'text-gray-700 dark:text-gray-300'
-                }`}
-              >
+                }`}>
                 {item}
               </Text>
             </Pressable>
@@ -58,18 +56,12 @@ export default function OnboardingIdentityScreen({
         disabled={!selected}
         onPress={() => selected && onNext(selected)}
         className={`mt-10 rounded-xl py-4 ${
-          selected
-            ? 'bg-gray-900 dark:bg-gray-100'
-            : 'bg-gray-300 dark:bg-gray-800'
-        }`}
-      >
+          selected ? 'bg-gray-900 dark:bg-gray-100' : 'bg-gray-300 dark:bg-gray-800'
+        }`}>
         <Text
           className={`text-center font-semibold ${
-            selected
-              ? 'text-white dark:text-gray-900'
-              : 'text-gray-500'
-          }`}
-        >
+            selected ? 'text-white dark:text-gray-900' : 'text-gray-500'
+          }`}>
           Continue
         </Text>
       </Pressable>

@@ -1,16 +1,19 @@
 import { View, Text, Pressable, ScrollView, Modal } from 'react-native';
 import { useState, useMemo } from 'react';
-import { useIdentities } from '../hooks/useIdentities';
 import HabitRow from './HabitRow';
 import { useRouter } from 'expo-router';
-import { Timing } from '../model/types';
+import { Timing, UserHabit } from '../model/types';
+import HabitActionModal from './HabitActionModal';
+import { useIdentitiesContext } from '../context/IdentitiesContext';
 
 export default function Home() {
   const [filter, setFilter] = useState<Timing>(Timing.Anytime);
-  const { identities } = useIdentities();
+  const { identities, updateHabit } = useIdentitiesContext();
   const [showAddMenu, setShowAddMenu] = useState(false);
   const router = useRouter();
-
+  const [activeHabit, setActiveHabit] = useState<UserHabit | null>(null);
+  const [activeIdentityId, setActiveIdentityId] = useState<string | null>(null);
+  console.log('Hurray', identities);
   const habits = useMemo(
     () =>
       identities.flatMap((identity) =>
@@ -21,7 +24,6 @@ export default function Home() {
       ),
     [identities]
   );
-
   const completedCount = habits.filter((h) => h.checkedToday).length;
   const timingOptions = Object.values(Timing);
 
@@ -89,10 +91,10 @@ export default function Home() {
                 <HabitRow
                   key={h.id}
                   habit={h}
-                  onToggle={() => console.log('Byeond implementation')}
-                  // onToggle={(duration) =>
-                  //   updateHabit(identity.id, h.id, duration)
-                  // }
+                  onPress={() => {
+                    setActiveHabit(h);
+                    setActiveIdentityId(identity.id);
+                  }}
                 />
               ))}
             </View>
@@ -145,6 +147,21 @@ export default function Home() {
           </Pressable>
         </View>
       </Modal>
+      {activeHabit && activeIdentityId && (
+        <HabitActionModal
+          habit={activeHabit}
+          visible={true}
+          onClose={() => {
+            setActiveHabit(null);
+            setActiveIdentityId(null);
+          }}
+          onComplete={(duration) => {
+            updateHabit(activeHabit, duration);
+            setActiveHabit(null);
+            setActiveIdentityId(null);
+          }}
+        />
+      )}
     </View>
   );
 }

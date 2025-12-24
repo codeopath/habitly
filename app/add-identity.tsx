@@ -1,14 +1,14 @@
 import { View, Text, TextInput, Pressable } from 'react-native';
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
-import { useIdentities } from '../hooks/useIdentities';
 import * as Crypto from 'expo-crypto';
+import { useIdentitiesContext } from '../context/IdentitiesContext';
 
 const ICONS = ['🙂', '💪', '📘', '🧠', '🎯', '🌱', '❤️'];
 
 export default function AddIdentityRoute() {
   const router = useRouter();
-  const { addIdentity } = useIdentities();
+  const { addIdentity } = useIdentitiesContext();
 
   const [label, setLabel] = useState('');
   const [icon, setIcon] = useState('🙂');

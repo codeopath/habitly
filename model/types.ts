@@ -3,7 +3,7 @@ export type UserHabit = {
   identityId: string;
   label: string;
   icon: string;
-  duration?: number;
+  duration: number;
   timing: Timing;
   checkedToday: boolean | null;
 };

@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import '../global.css';
+import { IdentitiesProvider } from '../context/IdentitiesProvider';
 
 export default function RootLayout() {
   const [ready, setReady] = useState(false);
@@ -29,14 +30,16 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      {!hasOnboarded && <Stack.Screen name="onboarding" />}
+    <IdentitiesProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        {!hasOnboarded && <Stack.Screen name="onboarding" />}
 
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen
-        name="select-identity"
-        options={{ presentation: 'modal', headerShown: false }}
-      />
-    </Stack>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen
+          name="select-identity"
+          options={{ presentation: 'modal', headerShown: false }}
+        />
+      </Stack>
+    </IdentitiesProvider>
   );
 }

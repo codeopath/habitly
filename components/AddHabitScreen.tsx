@@ -16,7 +16,7 @@ export default function AddHabitScreen({
   const [label, setLabel] = useState('');
   const { identity } = useLocalSearchParams<{ identity: string }>();
   const [timeOfDay, setTimeOfDay] = useState<Timing>(Timing.Anytime);
-  const [duration, setDuration] = useState<string>('');
+  const [duration, setDuration] = useState<string>('60');
 
   const canSave = label.trim().length > 0;
   return (
@@ -34,7 +34,7 @@ export default function AddHabitScreen({
           onPress={() =>
             onSave({
               label: label.trim(),
-              duration: duration ? Number(duration) : undefined,
+              duration: Number.parseFloat(duration),
               id: Crypto.randomUUID(),
               icon: '',
               checkedToday: null,
@@ -91,7 +91,7 @@ export default function AddHabitScreen({
         {/* Duration (optional) */}
         <View className="mb-10">
           <Text className="mb-2 text-xs font-semibold tracking-widest text-neutral-400">
-            DURATION (OPTIONAL)
+            DURATION
           </Text>
           <TextInput
             value={duration}

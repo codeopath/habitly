@@ -1,10 +1,10 @@
 import { useRouter } from 'expo-router';
 import AddHabitScreen from '../components/AddHabitScreen';
-import { useIdentities } from '../hooks/useIdentities';
+import { useIdentitiesContext } from '../context/IdentitiesContext';
 
 export default function AddHabitRoute() {
   const router = useRouter();
-  const { addHabit } = useIdentities();
+  const { addHabit } = useIdentitiesContext();
   return (
     <AddHabitScreen
       onCancel={() => {

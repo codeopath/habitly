@@ -1,10 +1,10 @@
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useIdentities } from '../hooks/useIdentities';
+import { useIdentitiesContext } from '../context/IdentitiesContext';
 
 export default function SelectIdentityRoute() {
   const router = useRouter();
-  const { identities } = useIdentities();
+  const { identities } = useIdentitiesContext();
 
   return (
     <View className="flex-1 bg-neutral-950 px-6 pt-14">

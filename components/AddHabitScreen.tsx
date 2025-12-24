@@ -1,6 +1,8 @@
 import { View, Text, TextInput, Pressable, ScrollView } from 'react-native';
 import { useState } from 'react';
 import { Habit } from '../model/types';
+import * as Crypto from 'expo-crypto';
+import { useLocalSearchParams } from 'expo-router';
 
 const TIMES = [
   { id: 'anytime', label: 'Anytime' },
@@ -17,11 +19,11 @@ export default function AddHabitScreen({
   onSave: (habit: Habit) => void;
 }) {
   const [label, setLabel] = useState('');
+  const { identity } = useLocalSearchParams<{ identity: string }>();
   const [timeOfDay, setTimeOfDay] = useState('anytime');
   const [duration, setDuration] = useState<string>('');
 
   const canSave = label.trim().length > 0;
-
   return (
     <View className="flex-1 bg-neutral-950 px-6 pt-14">
       {/* Header */}
@@ -38,10 +40,10 @@ export default function AddHabitScreen({
             onSave({
               label: label.trim(),
               duration: duration ? Number(duration) : undefined,
-              id: '',
+              id: Crypto.randomUUID(),
               icon: '',
               checkedToday: null,
-              identityId: '',
+              identityId: identity,
             })
           }>
           <Text

@@ -80,6 +80,6 @@ export function useIdentities() {
     loaded,
     updateHabit,
     addHabit,
-    addIdentity
+    addIdentity,
   };
 }

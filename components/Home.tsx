@@ -3,16 +3,14 @@ import { useState, useMemo } from 'react';
 import { useIdentities } from '../hooks/useIdentities';
 import HabitRow from './HabitRow';
 import { useRouter } from 'expo-router';
+import { Timing } from '../model/types';
 
 export default function Home() {
-  const [filter, setFilter] = useState<'all' | 'morning' | 'afternoon'>('all');
+  const [filter, setFilter] = useState<Timing>(Timing.Anytime);
   const { identities } = useIdentities();
   const [showAddMenu, setShowAddMenu] = useState(false);
   const router = useRouter();
 
-  const today = 'Dec 21';
-
-  // Flatten habits (ANYTIME for now)
   const habits = useMemo(
     () =>
       identities.flatMap((identity) =>
@@ -25,6 +23,7 @@ export default function Home() {
   );
 
   const completedCount = habits.filter((h) => h.checkedToday).length;
+  const timingOptions = Object.values(Timing);
 
   return (
     <View className="flex-1 bg-neutral-950 px-5 pt-14">
@@ -32,7 +31,12 @@ export default function Home() {
       <View className="mb-6 flex-row items-center justify-between">
         <View>
           <Text className="text-2xl font-extrabold tracking-wide text-white">TODAY</Text>
-          <Text className="text-sm text-neutral-400">{today}</Text>
+          <Text className="text-sm text-neutral-400">
+            {new Date().toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+            })}
+          </Text>
         </View>
 
         <Pressable
@@ -43,23 +47,17 @@ export default function Home() {
       </View>
 
       {/* Filters */}
-      <View className="mb-3 flex-row space-x-3">
-        {[
-          { id: 'all', label: 'ALL' },
-          { id: 'morning', label: 'MORNING' },
-          { id: 'afternoon', label: 'AFTERNOON' },
-        ].map((f) => (
+      <View className="mb-4 flex-row flex-wrap gap-3">
+        {timingOptions.map((f) => (
           <Pressable
-            key={f.id}
-            onPress={() => setFilter(f.id as any)}
-            className={`rounded-full px-5 py-2 ${
-              filter === f.id ? 'bg-blue-500' : 'bg-neutral-800'
-            }`}>
+            key={f}
+            onPress={() => setFilter(f)}
+            className={`rounded-full px-5 py-2 ${filter === f ? 'bg-blue-500' : 'bg-neutral-800'}`}>
             <Text
               className={`text-sm font-semibold ${
-                filter === f.id ? 'text-white' : 'text-neutral-400'
+                filter === f ? 'text-white' : 'text-neutral-400'
               }`}>
-              {f.label}
+              {f}
             </Text>
           </Pressable>
         ))}
@@ -69,26 +67,40 @@ export default function Home() {
       <Text className="mb-6 text-sm text-neutral-400">
         {habits.length} habit planned · {completedCount} completed
       </Text>
-
-      {/* Habit list */}
       <ScrollView showsVerticalScrollIndicator={false}>
-        <Text className="mb-3 text-xs font-semibold tracking-widest text-neutral-400">
-          ANYTIME · {habits.length}
-        </Text>
+        {identities.map((identity) => {
+          const visibleHabits =
+            filter === Timing.Anytime
+              ? identity.habits
+              : identity.habits.filter((h) => h.timing === filter);
 
-        {habits.map((h) => (
-          <HabitRow
-            key={h.id}
-            habit={h}
-            onToggle={() => console.log('Hello')}
-            // onToggle={(duration) =>
-            //   updateHabit(h.identityId, h.id, duration)
-            // }
-          />
-        ))}
+          if (visibleHabits.length === 0) return null;
+
+          return (
+            <View key={identity.id} className="mb-8">
+              {/* Identity subheading */}
+              <Text className="mb-3 text-sm font-semibold text-neutral-300">
+                {identity.icon ? `${identity.icon} ` : ''}
+                {identity.label}
+              </Text>
+
+              {/* Habits under identity */}
+              {visibleHabits.map((h) => (
+                <HabitRow
+                  key={h.id}
+                  habit={h}
+                  onToggle={() => console.log('Byeond implementation')}
+                  // onToggle={(duration) =>
+                  //   updateHabit(identity.id, h.id, duration)
+                  // }
+                />
+              ))}
+            </View>
+          );
+        })}
 
         {/* Gentle guidance */}
-        {habits.length < 2 && (
+        {identities.length === 1 && identities[0].habits.length < 2 && (
           <Text className="mt-6 text-sm text-neutral-500">
             Most people start with 2–3 small habits
           </Text>

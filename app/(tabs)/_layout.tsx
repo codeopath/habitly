@@ -1,16 +1,18 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { useColorScheme } from 'nativewind';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme().colorScheme;
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colorScheme === 'dark' ? 'white' : 'black',
         headerShown: false,
-        // tabBarButton: HapticTab,
+        tabBarStyle: {
+          backgroundColor: '#0A0A0A',
+          borderTopWidth: 0,
+        },
+        tabBarActiveTintColor: '#3B82F6',
+        tabBarInactiveTintColor: '#6B7280',
       }}>
       <Tabs.Screen
         name="index"
@@ -22,22 +24,22 @@ export default function TabLayout() {
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <Ionicons size={28} name="search" color={color} />,
+          title: 'Journey',
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="map" color={color} />,
         }}
       />
       <Tabs.Screen
         name="stats"
         options={{
-          title: 'Stats',
+          title: 'History',
           tabBarIcon: ({ color }) => <Ionicons size={28} name="stats-chart" color={color} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Settings',
-          tabBarIcon: ({ color }) => <Ionicons size={28} name="settings" color={color} />,
+          title: 'Me',
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="person" color={color} />,
         }}
       />
     </Tabs>

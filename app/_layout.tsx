@@ -33,6 +33,13 @@ export default function RootLayout() {
       {!hasOnboarded && <Stack.Screen name="onboarding" />}
 
       <Stack.Screen name="(tabs)" />
+      <Stack.Screen
+        name="add-habit"
+        options={{
+          presentation: 'modal',
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

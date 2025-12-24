@@ -111,7 +111,7 @@ export default function Home() {
 
           <Pressable
             onPress={() => {
-              router.replace('/add-habit');
+              router.replace('/select-identity');
             }}
             className="mb-3 flex-row items-center rounded-2xl bg-neutral-800 px-4 py-4">
             <Text className="mr-3 text-xl">➕</Text>
@@ -121,8 +121,7 @@ export default function Home() {
           <Pressable
             onPress={() => {
               setShowAddMenu(false);
-              console.log('Add identity');
-              // router.push('/add-identity')
+              router.replace('/add-identity');
             }}
             className="flex-row items-center rounded-2xl bg-neutral-800 px-4 py-4">
             <Text className="mr-3 text-xl">👤</Text>

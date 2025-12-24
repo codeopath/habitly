@@ -34,11 +34,8 @@ export default function RootLayout() {
 
       <Stack.Screen name="(tabs)" />
       <Stack.Screen
-        name="add-habit"
-        options={{
-          presentation: 'modal',
-          headerShown: false,
-        }}
+        name="select-identity"
+        options={{ presentation: 'modal', headerShown: false }}
       />
     </Stack>
   );

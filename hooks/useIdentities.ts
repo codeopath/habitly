@@ -26,6 +26,10 @@ export function useIdentities() {
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(identities));
   }, [identities, loaded]);
 
+  const addIdentity = (identity: Identity) => {
+    setIdentities((prev) => [...prev, identity]);
+  };
+
   const updateHabit = (identityId: string, habitId: string, duration: number) => {
     setIdentities((prev) =>
       prev.map((identity) =>
@@ -76,5 +80,6 @@ export function useIdentities() {
     loaded,
     updateHabit,
     addHabit,
+    addIdentity
   };
 }

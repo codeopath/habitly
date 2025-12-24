@@ -1,26 +1,21 @@
 import { View, Text, TextInput, Pressable, ScrollView } from 'react-native';
 import { useState } from 'react';
-import { Habit } from '../model/types';
+import { Timing, UserHabit } from '../model/types';
 import * as Crypto from 'expo-crypto';
 import { useLocalSearchParams } from 'expo-router';
 
-const TIMES = [
-  { id: 'anytime', label: 'Anytime' },
-  { id: 'morning', label: 'Morning' },
-  { id: 'afternoon', label: 'Afternoon' },
-  { id: 'evening', label: 'Evening' },
-];
+const TIMING = Object.values(Timing);
 
 export default function AddHabitScreen({
   onCancel,
   onSave,
 }: {
   onCancel: () => void;
-  onSave: (habit: Habit) => void;
+  onSave: (habit: UserHabit) => void;
 }) {
   const [label, setLabel] = useState('');
   const { identity } = useLocalSearchParams<{ identity: string }>();
-  const [timeOfDay, setTimeOfDay] = useState('anytime');
+  const [timeOfDay, setTimeOfDay] = useState<Timing>(Timing.Anytime);
   const [duration, setDuration] = useState<string>('');
 
   const canSave = label.trim().length > 0;
@@ -44,6 +39,7 @@ export default function AddHabitScreen({
               icon: '',
               checkedToday: null,
               identityId: identity,
+              timing: timeOfDay,
             })
           }>
           <Text
@@ -70,13 +66,13 @@ export default function AddHabitScreen({
         <View className="mb-6">
           <Text className="mb-3 text-xs font-semibold tracking-widest text-neutral-400">TIME</Text>
           <View className="flex-row flex-wrap">
-            {TIMES.map((t) => {
-              const selected = timeOfDay === t.id;
+            {TIMING.map((t) => {
+              const selected = timeOfDay === t;
 
               return (
                 <Pressable
-                  key={t.id}
-                  onPress={() => setTimeOfDay(t.id)}
+                  key={t}
+                  onPress={() => setTimeOfDay(t)}
                   className={`mb-3 mr-3 rounded-full px-5 py-2 ${
                     selected ? 'bg-blue-500' : 'bg-neutral-800'
                   }`}>
@@ -84,7 +80,7 @@ export default function AddHabitScreen({
                     className={`text-sm font-semibold ${
                       selected ? 'text-white' : 'text-neutral-400'
                     }`}>
-                    {t.label}
+                    {t}
                   </Text>
                 </Pressable>
               );

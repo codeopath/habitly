@@ -1,14 +1,30 @@
 import { View, Text, Pressable, ScrollView, Modal } from 'react-native';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useIdentities } from '../hooks/useIdentities';
 import HabitRow from './HabitRow';
 import { useRouter } from 'expo-router';
 
 export default function Home() {
   const [filter, setFilter] = useState<'all' | 'morning' | 'afternoon'>('all');
-  const { identities, updateHabit } = useIdentities();
+  const { identities } = useIdentities();
   const [showAddMenu, setShowAddMenu] = useState(false);
   const router = useRouter();
+
+  const today = 'Dec 21';
+
+  // Flatten habits (ANYTIME for now)
+  const habits = useMemo(
+    () =>
+      identities.flatMap((identity) =>
+        identity.habits.map((h) => ({
+          ...h,
+          identityId: identity.id,
+        }))
+      ),
+    [identities]
+  );
+
+  const completedCount = habits.filter((h) => h.checkedToday).length;
 
   return (
     <View className="flex-1 bg-neutral-950 px-5 pt-14">
@@ -16,7 +32,7 @@ export default function Home() {
       <View className="mb-6 flex-row items-center justify-between">
         <View>
           <Text className="text-2xl font-extrabold tracking-wide text-white">TODAY</Text>
-          <Text className="text-sm text-neutral-400">Dec 21</Text>
+          <Text className="text-sm text-neutral-400">{today}</Text>
         </View>
 
         <Pressable
@@ -26,33 +42,8 @@ export default function Home() {
         </Pressable>
       </View>
 
-      {/* Week strip */}
-      <View className="mb-6">
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{
-            alignItems: 'center',
-          }}>
-          {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((d, i) => (
-            <View key={d} className="mr-6 items-center">
-              <Text className="text-xs text-neutral-500">{d}</Text>
-
-              <View
-                className={`mt-2 h-9 w-9 items-center justify-center rounded-full ${
-                  i === 0 ? 'bg-neutral-800' : ''
-                }`}>
-                <Text className="text-white">{21 + i}</Text>
-              </View>
-
-              {i === 0 && <View className="mt-1 h-1 w-6 rounded bg-blue-500" />}
-            </View>
-          ))}
-        </ScrollView>
-      </View>
-
-      {/*Filters */}
-      <View className="mb-6 flex-row space-x-3">
+      {/* Filters */}
+      <View className="mb-3 flex-row space-x-3">
         {[
           { id: 'all', label: 'ALL' },
           { id: 'morning', label: 'MORNING' },
@@ -74,31 +65,39 @@ export default function Home() {
         ))}
       </View>
 
-      {/* Habit section */}
-      <Text className="mb-3 text-xs font-semibold tracking-widest text-neutral-400">ANYTIME</Text>
+      {/* Today summary */}
+      <Text className="mb-6 text-sm text-neutral-400">
+        {habits.length} habit planned · {completedCount} completed
+      </Text>
 
-      {identities
-        .map((a) => a.habits)
-        .map((habitList) =>
-          habitList.map((h) => <HabitRow key={h.id} habit={h} onToggle={() => updateHabit} />)
+      {/* Habit list */}
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <Text className="mb-3 text-xs font-semibold tracking-widest text-neutral-400">
+          ANYTIME · {habits.length}
+        </Text>
+
+        {habits.map((h) => (
+          <HabitRow
+            key={h.id}
+            habit={h}
+            onToggle={() => console.log('Hello')}
+            // onToggle={(duration) =>
+            //   updateHabit(h.identityId, h.id, duration)
+            // }
+          />
+        ))}
+
+        {/* Gentle guidance */}
+        {habits.length < 2 && (
+          <Text className="mt-6 text-sm text-neutral-500">
+            Most people start with 2–3 small habits
+          </Text>
         )}
 
-      {/*/!* Tutorial callout *!/*/}
-      {/*<View className="mt-6 max-w-[85%] rounded-2xl bg-green-700 p-4">*/}
-      {/*  <Text className="mb-1 text-base font-bold text-white">*/}
-      {/*    Your first habit*/}
-      {/*  </Text>*/}
-      {/*  <Text className="text-sm text-white/90">*/}
-      {/*    Your habits will be listed here and categorized by time.*/}
-      {/*  </Text>*/}
-      {/*</View>*/}
+        <View className="h-24" />
+      </ScrollView>
 
-      {/*/!* Skip tutorial *!/*/}
-      {/*<Pressable className="mt-auto mb-6 self-center rounded-full border border-white px-10 py-3">*/}
-      {/*  <Text className="font-semibold text-white">*/}
-      {/*    SKIP TUTORIAL*/}
-      {/*  </Text>*/}
-      {/*</Pressable>*/}
+      {/* Add menu */}
       <Modal
         visible={showAddMenu}
         transparent
@@ -111,6 +110,7 @@ export default function Home() {
 
           <Pressable
             onPress={() => {
+              setShowAddMenu(false);
               router.push('/select-identity');
             }}
             className="mb-3 flex-row items-center rounded-2xl bg-neutral-800 px-4 py-4">

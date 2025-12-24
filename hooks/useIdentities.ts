@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Habit, Identity } from '../model/types';
+import { UserHabit, UserIdentity } from '../model/types';
 
 const STORAGE_KEY = 'identities';
 
 export function useIdentities() {
-  const [identities, setIdentities] = useState<Identity[]>([]);
+  const [identities, setIdentities] = useState<UserIdentity[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   // Load once
@@ -26,7 +26,7 @@ export function useIdentities() {
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(identities));
   }, [identities, loaded]);
 
-  const addIdentity = (identity: Identity) => {
+  const addIdentity = (identity: UserIdentity) => {
     setIdentities((prev) => [...prev, identity]);
   };
 
@@ -51,7 +51,7 @@ export function useIdentities() {
     );
   };
 
-  const addHabit = (habit: Habit) => {
+  const addHabit = (habit: UserHabit) => {
     setIdentities((prev) => {
       const exists = prev.find((i) => i.id === habit.identityId);
 

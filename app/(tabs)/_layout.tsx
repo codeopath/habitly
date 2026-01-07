@@ -17,14 +17,14 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Log',
+          title: 'Today',
           tabBarIcon: ({ color }) => <Ionicons size={28} name="home" color={color} />,
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Journey',
+          title: 'Progress',
           tabBarIcon: ({ color }) => <Ionicons size={28} name="map" color={color} />,
         }}
       />
@@ -38,7 +38,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Me',
+          title: 'Profile',
           tabBarIcon: ({ color }) => <Ionicons size={28} name="person" color={color} />,
         }}
       />

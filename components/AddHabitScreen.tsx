@@ -4,7 +4,13 @@ import { Timing, UserHabit } from '../model/types';
 import * as Crypto from 'expo-crypto';
 import { useLocalSearchParams } from 'expo-router';
 
-const TIMING = Object.values(Timing);
+const TIMING_OPTIONS = [
+  Timing.Morning,
+  Timing.Afternoon,
+  Timing.Evening,
+  Timing.Night,
+  Timing.Anytime,
+];
 
 export default function AddHabitScreen({
   onCancel,
@@ -13,12 +19,14 @@ export default function AddHabitScreen({
   onCancel: () => void;
   onSave: (habit: UserHabit) => void;
 }) {
-  const [label, setLabel] = useState('');
   const { identity } = useLocalSearchParams<{ identity: string }>();
+
+  const [label, setLabel] = useState('');
   const [timeOfDay, setTimeOfDay] = useState<Timing>(Timing.Anytime);
-  const [duration, setDuration] = useState<string>('60');
+  const [duration, setDuration] = useState<number>(15);
 
   const canSave = label.trim().length > 0;
+
   return (
     <View className="flex-1 bg-neutral-950 px-6 pt-14">
       {/* Header */}
@@ -33,9 +41,9 @@ export default function AddHabitScreen({
           disabled={!canSave}
           onPress={() =>
             onSave({
-              label: label.trim(),
-              duration: Number.parseFloat(duration),
               id: Crypto.randomUUID(),
+              label: label.trim(),
+              duration,
               icon: '',
               checkedToday: null,
               identityId: identity,
@@ -62,23 +70,26 @@ export default function AddHabitScreen({
           />
         </View>
 
-        {/* Time of day */}
+        {/* Timing */}
         <View className="mb-6">
-          <Text className="mb-3 text-xs font-semibold tracking-widest text-neutral-400">TIME</Text>
+          <Text className="mb-3 text-xs font-semibold tracking-widest text-neutral-400">
+            PREFERRED TIME
+          </Text>
+
           <View className="flex-row flex-wrap">
-            {TIMING.map((t) => {
-              const selected = timeOfDay === t;
+            {TIMING_OPTIONS.map((t) => {
+              const active = timeOfDay === t;
 
               return (
                 <Pressable
                   key={t}
                   onPress={() => setTimeOfDay(t)}
                   className={`mb-3 mr-3 rounded-full px-5 py-2 ${
-                    selected ? 'bg-blue-500' : 'bg-neutral-800'
+                    active ? 'bg-blue-500' : 'bg-neutral-800'
                   }`}>
                   <Text
                     className={`text-sm font-semibold ${
-                      selected ? 'text-white' : 'text-neutral-400'
+                      active ? 'text-white' : 'text-neutral-400'
                     }`}>
                     {t}
                   </Text>
@@ -88,19 +99,27 @@ export default function AddHabitScreen({
           </View>
         </View>
 
-        {/* Duration (optional) */}
+        {/* Duration */}
         <View className="mb-10">
-          <Text className="mb-2 text-xs font-semibold tracking-widest text-neutral-400">
+          <Text className="mb-3 text-xs font-semibold tracking-widest text-neutral-400">
             DURATION
           </Text>
-          <TextInput
-            value={duration}
-            onChangeText={setDuration}
-            keyboardType="numeric"
-            placeholder="Minutes (e.g. 15)"
-            placeholderTextColor="#6B7280"
-            className="rounded-2xl bg-neutral-800 px-4 py-4 text-base text-white"
-          />
+
+          <View className="flex-row items-center justify-between rounded-2xl bg-neutral-800 px-6 py-4">
+            <Pressable
+              onPress={() => setDuration((d) => Math.max(5, d - 5))}
+              className="h-10 w-10 items-center justify-center rounded-full bg-neutral-700">
+              <Text className="text-2xl text-white">−</Text>
+            </Pressable>
+
+            <Text className="text-xl font-bold text-white">{duration} min</Text>
+
+            <Pressable
+              onPress={() => setDuration((d) => d + 5)}
+              className="h-10 w-10 items-center justify-center rounded-full bg-neutral-700">
+              <Text className="text-2xl text-white">+</Text>
+            </Pressable>
+          </View>
         </View>
       </ScrollView>
     </View>

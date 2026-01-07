@@ -13,7 +13,6 @@ export default function Home() {
   const router = useRouter();
   const [activeHabit, setActiveHabit] = useState<UserHabit | null>(null);
   const [activeIdentityId, setActiveIdentityId] = useState<string | null>(null);
-  console.log('Hurray', identities);
   const habits = useMemo(
     () =>
       identities.flatMap((identity) =>

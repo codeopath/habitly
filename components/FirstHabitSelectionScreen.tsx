@@ -1,28 +1,54 @@
 import { View, Text, Pressable, TextInput } from 'react-native';
 import { useState } from 'react';
-import { Habit, Identity } from '../model/types';
+import { UserHabit, UserIdentity, Timing } from '../model/types';
 
 export default function FirstHabitSelectionScreen({
   identity,
   onNext,
   onSkip,
 }: {
-  identity: Identity;
-  onNext: (habit: Habit) => void;
+  identity: UserIdentity;
+  onNext: (habit: UserHabit) => void;
   onSkip: () => void;
 }) {
-  const [selected, setSelected] = useState<Habit | null>(null);
-  const [customHabit, setCustomHabit] = useState<Habit | null>(null);
+  const [selected, setSelected] = useState<UserHabit | null>(null);
+  const [customLabel, setCustomLabel] = useState('');
+  const [duration, setDuration] = useState(15);
+  const [timing, setTiming] = useState<Timing>(Timing.Anytime);
 
-  const finalHabit = customHabit || selected;
+  const timingOptions = [
+    Timing.Morning,
+    Timing.Afternoon,
+    Timing.Evening,
+    Timing.Night,
+    Timing.Anytime,
+  ];
+
+  const finalHabit: UserHabit | null = selected
+    ? {
+        ...selected,
+        duration,
+        timing,
+      }
+    : customLabel
+      ? {
+          id: 'custom',
+          label: customLabel,
+          icon: '🆕',
+          duration,
+          timing,
+          identityId: identity.id,
+          checkedToday: null,
+        }
+      : null;
+
   return (
     <View className="flex-1 bg-neutral-900 px-6 pt-16">
       {/* Progress */}
       <View className="mb-10 flex-row space-x-2">
-        <View className="h-1 flex-1 rounded bg-blue-500" />
-        <View className="h-1 flex-1 rounded bg-blue-500" />
-        <View className="h-1 flex-1 rounded bg-blue-500" />
-        <View className="h-1 flex-1 rounded bg-blue-500" />
+        {Array.from({ length: 4 }).map((_, i) => (
+          <View key={i} className="h-1 flex-1 rounded bg-blue-500" />
+        ))}
       </View>
 
       <Text className="text-3xl font-extrabold text-white">Choose the first habit</Text>
@@ -38,6 +64,7 @@ export default function FirstHabitSelectionScreen({
               key={h.id}
               onPress={() => {
                 setSelected(h);
+                setCustomLabel('');
               }}
               className={`flex-row items-center rounded-xl px-4 py-4 ${
                 isSelected ? 'bg-neutral-700' : 'bg-neutral-800'
@@ -53,15 +80,67 @@ export default function FirstHabitSelectionScreen({
       <Text className="my-6 text-center text-sm text-neutral-500">Or type your own</Text>
 
       <TextInput
-        value={customHabit?.label}
+        value={customLabel}
         onChangeText={(t) => {
-          setCustomHabit({ id: 'custom', label: t, icon: '🆕', checkedToday: null });
+          setCustomLabel(t);
           setSelected(null);
         }}
         placeholder="Your first habit is..."
         placeholderTextColor="#6B7280"
         className="rounded-xl bg-neutral-800 px-4 py-4 text-white"
       />
+
+      {/* Duration */}
+      {(selected || customLabel) && (
+        <>
+          <View className="mt-8">
+            <Text className="mb-3 text-xs font-semibold tracking-widest text-neutral-400">
+              DAILY DURATION
+            </Text>
+
+            <View className="flex-row items-center justify-between rounded-2xl bg-neutral-800 px-6 py-4">
+              <Pressable onPress={() => setDuration(Math.max(5, duration - 5))}>
+                <Text className="text-2xl text-white">−</Text>
+              </Pressable>
+
+              <Text className="text-xl font-bold text-white">{duration} min</Text>
+
+              <Pressable onPress={() => setDuration(duration + 5)}>
+                <Text className="text-2xl text-white">+</Text>
+              </Pressable>
+            </View>
+          </View>
+
+          {/* Timing */}
+          <View className="mt-6">
+            <Text className="mb-3 text-xs font-semibold tracking-widest text-neutral-400">
+              PREFERRED TIME
+            </Text>
+
+            <View className="flex-row flex-wrap">
+              {timingOptions.map((t) => {
+                const active = timing === t;
+
+                return (
+                  <Pressable
+                    key={t}
+                    onPress={() => setTiming(t)}
+                    className={`mb-3 mr-3 rounded-full px-4 py-2 ${
+                      active ? 'bg-blue-500' : 'bg-neutral-800'
+                    }`}>
+                    <Text
+                      className={`text-sm font-semibold ${
+                        active ? 'text-white' : 'text-neutral-400'
+                      }`}>
+                      {t}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        </>
+      )}
 
       {/* Actions */}
       <View className="mb-8 mt-auto flex-row justify-between">

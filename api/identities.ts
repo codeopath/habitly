@@ -19,8 +19,9 @@ const identities: Identity[] = [
     label: 'Fitness Enthusiast',
     icon: '💪',
     habits: [
-      { id: 'sleep', label: 'Sleep over 8h', icon: '😴' },
-      { id: 'meal', label: 'Have a healthy meal', icon: '🍽️' },
+      { id: 'sleep-8h', label: 'Sleep over 8h', icon: '😴' },
+      { id: 'healthy-meal', label: 'Have a healthy meal', icon: '🍽️' },
+      { id: 'workout-30', label: '30 min workout', icon: '🏋️' },
     ],
   },
   {
@@ -28,9 +29,9 @@ const identities: Identity[] = [
     label: 'Productivity Seeker',
     icon: '🚀',
     habits: [
-      { id: 'water', label: 'Drink 8 cups of water', icon: '🥤' },
-      { id: 'workout', label: 'Workout', icon: '🏋️' },
-      { id: 'walk', label: 'Walking', icon: '🚶' },
+      { id: 'plan-tomorrow', label: 'Plan tomorrow', icon: '📋' },
+      { id: 'deep-work', label: 'Deep work session', icon: '🎧' },
+      { id: 'review-goals', label: 'Review goals', icon: '🎯' },
     ],
   },
   {
@@ -38,9 +39,9 @@ const identities: Identity[] = [
     label: 'Live healthier',
     icon: '❤️',
     habits: [
-      { id: 'water', label: 'Drink 8 cups of water', icon: '🥤' },
-      { id: 'workout', label: 'Workout', icon: '🏋️' },
-      { id: 'walk', label: 'Walking', icon: '🚶' },
+      { id: 'water-8', label: 'Drink 8 cups of water', icon: '🥤' },
+      { id: 'eat-veggies', label: 'Eat vegetables', icon: '🥗' },
+      { id: 'walk-10k', label: 'Walk 10k steps', icon: '🚶' },
     ],
   },
   {
@@ -48,9 +49,9 @@ const identities: Identity[] = [
     label: 'Relieve pressure',
     icon: '🧠',
     habits: [
-      { id: 'water', label: 'Drink 8 cups of water', icon: '🥤' },
-      { id: 'workout', label: 'Workout', icon: '🏋️' },
-      { id: 'walk', label: 'Walking', icon: '🚶' },
+      { id: 'meditate', label: 'Meditate', icon: '🧘' },
+      { id: 'journal', label: 'Journal', icon: '📓' },
+      { id: 'deep-breathing', label: 'Deep breathing', icon: '🌬️' },
     ],
   },
   {
@@ -58,9 +59,9 @@ const identities: Identity[] = [
     label: 'Try new things',
     icon: '🌱',
     habits: [
-      { id: 'water', label: 'Drink 8 cups of water', icon: '🥤' },
-      { id: 'workout', label: 'Workout', icon: '🏋️' },
-      { id: 'walk', label: 'Walking', icon: '🚶' },
+      { id: 'learn-new', label: 'Learn something new', icon: '💡' },
+      { id: 'read-20', label: 'Read 20 pages', icon: '📖' },
+      { id: 'new-recipe', label: 'Try a new recipe', icon: '🍳' },
     ],
   },
   {
@@ -68,9 +69,9 @@ const identities: Identity[] = [
     label: 'Be more focused',
     icon: '🎯',
     habits: [
-      { id: 'water', label: 'Drink 8 cups of water', icon: '🥤' },
-      { id: 'workout', label: 'Workout', icon: '🏋️' },
-      { id: 'walk', label: 'Walking', icon: '🚶' },
+      { id: 'no-phone', label: 'No phone first hour', icon: '📵' },
+      { id: 'single-task', label: 'Single-task 2h', icon: '⏱️' },
+      { id: 'digital-detox', label: 'Digital detox evening', icon: '🌅' },
     ],
   },
   {
@@ -78,9 +79,9 @@ const identities: Identity[] = [
     label: 'Better relationship',
     icon: '👥',
     habits: [
-      { id: 'water', label: 'Drink 8 cups of water', icon: '🥤' },
-      { id: 'workout', label: 'Workout', icon: '🏋️' },
-      { id: 'walk', label: 'Walking', icon: '🚶' },
+      { id: 'call-loved', label: 'Call a loved one', icon: '📞' },
+      { id: 'active-listen', label: 'Active listening', icon: '👂' },
+      { id: 'express-gratitude', label: 'Express gratitude', icon: '🙏' },
     ],
   },
   {
@@ -88,9 +89,9 @@ const identities: Identity[] = [
     label: 'Sleep better',
     icon: '🌙',
     habits: [
-      { id: 'water', label: 'Drink 8 cups of water', icon: '🥤' },
-      { id: 'workout', label: 'Workout', icon: '🏋️' },
-      { id: 'walk', label: 'Walking', icon: '🚶' },
+      { id: 'no-caffeine', label: 'No caffeine after 2pm', icon: '☕' },
+      { id: 'screen-off', label: 'Screen off by 9pm', icon: '📴' },
+      { id: 'wind-down', label: 'Evening wind-down', icon: '🛁' },
     ],
   },
 ];

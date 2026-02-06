@@ -1,7 +1,12 @@
-import { View, Text, ScrollView } from 'react-native';
-import { useMemo } from 'react';
+import { View, Text, ScrollView, Switch } from 'react-native';
+import { useEffect, useMemo, useState } from 'react';
 import Constants from 'expo-constants';
 import { useIdentitiesContext } from '../context/IdentitiesContext';
+import {
+  getNotificationsEnabled,
+  setNotificationsEnabled,
+  scheduleHabitNotifications,
+} from '../utils/notifications';
 
 export default function ProfileScreen() {
   const { identities } = useIdentitiesContext();
@@ -23,6 +28,20 @@ export default function ProfileScreen() {
 
     return { habitCount: habits, daysActive: uniqueDays.size };
   }, [identities]);
+
+  const [notificationsOn, setNotificationsOn] = useState(true);
+
+  useEffect(() => {
+    getNotificationsEnabled().then(setNotificationsOn);
+  }, []);
+
+  const toggleNotifications = async (value: boolean) => {
+    setNotificationsOn(value);
+    await setNotificationsEnabled(value);
+    if (value) {
+      await scheduleHabitNotifications(identities);
+    }
+  };
 
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
 
@@ -69,6 +88,18 @@ export default function ProfileScreen() {
             </View>
           ))
         )}
+
+        {/* Settings section */}
+        <Text className="mb-3 mt-6 text-sm font-semibold text-neutral-400">SETTINGS</Text>
+        <View className="mb-3 flex-row items-center justify-between rounded-2xl bg-neutral-800 px-4 py-4">
+          <Text className="text-base font-semibold text-white">Notifications</Text>
+          <Switch
+            value={notificationsOn}
+            onValueChange={toggleNotifications}
+            trackColor={{ false: '#404040', true: '#3B82F6' }}
+            thumbColor="#fff"
+          />
+        </View>
 
         {/* About section */}
         <Text className="mb-3 mt-6 text-sm font-semibold text-neutral-400">ABOUT</Text>

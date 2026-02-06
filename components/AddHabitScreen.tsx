@@ -15,15 +15,23 @@ const TIMING_OPTIONS = [
 export default function AddHabitScreen({
   onCancel,
   onSave,
+  initialLabel = '',
+  initialTiming = Timing.Anytime,
+  initialDuration = 15,
+  title = 'Add Habit',
 }: {
   onCancel: () => void;
   onSave: (habit: UserHabit) => void;
+  initialLabel?: string;
+  initialTiming?: Timing;
+  initialDuration?: number;
+  title?: string;
 }) {
   const { identity } = useLocalSearchParams<{ identity: string }>();
 
-  const [label, setLabel] = useState('');
-  const [timeOfDay, setTimeOfDay] = useState<Timing>(Timing.Anytime);
-  const [duration, setDuration] = useState<number>(15);
+  const [label, setLabel] = useState(initialLabel);
+  const [timeOfDay, setTimeOfDay] = useState<Timing>(initialTiming);
+  const [duration, setDuration] = useState<number>(initialDuration);
 
   const canSave = label.trim().length > 0;
 
@@ -35,7 +43,7 @@ export default function AddHabitScreen({
           <Text className="text-base text-neutral-400">Cancel</Text>
         </Pressable>
 
-        <Text className="text-lg font-bold text-white">Add Habit</Text>
+        <Text className="text-lg font-bold text-white">{title}</Text>
 
         <Pressable
           disabled={!canSave}

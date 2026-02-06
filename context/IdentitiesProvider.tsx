@@ -1,7 +1,8 @@
-import { ReactNode, useEffect, useMemo, useState } from 'react';
+import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserHabit, UserIdentity } from '../model/types';
 import { IdentitiesContext } from './IdentitiesContext';
+import { scheduleHabitNotifications } from '../utils/notifications';
 
 export function IdentitiesProvider({ children }: { children: ReactNode }) {
   const [identities, setIdentities] = useState<UserIdentity[]>([]);
@@ -84,6 +85,50 @@ export function IdentitiesProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const editHabit = (
+    habitId: string,
+    updates: Partial<Pick<UserHabit, 'label' | 'timing' | 'duration'>>
+  ) => {
+    setIdentities((prev) =>
+      prev.map((identity) => ({
+        ...identity,
+        habits: identity.habits.map((h) => (h.id === habitId ? { ...h, ...updates } : h)),
+      }))
+    );
+  };
+
+  const deleteHabit = (habitId: string) => {
+    setIdentities((prev) =>
+      prev.map((identity) => ({
+        ...identity,
+        habits: identity.habits.filter((h) => h.id !== habitId),
+      }))
+    );
+  };
+
+  const editIdentity = (
+    identityId: string,
+    updates: Partial<Pick<UserIdentity, 'label' | 'icon'>>
+  ) => {
+    setIdentities((prev) =>
+      prev.map((identity) => (identity.id === identityId ? { ...identity, ...updates } : identity))
+    );
+  };
+
+  const deleteIdentity = (identityId: string) => {
+    setIdentities((prev) => prev.filter((identity) => identity.id !== identityId));
+  };
+
+  // Reschedule notifications when habits change (debounced)
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => {
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      scheduleHabitNotifications(identities);
+    }, 500);
+    return () => clearTimeout(debounceRef.current);
+  }, [identities]);
+
   const enrichedIdentities = useMemo(() => {
     const today = new Date().toISOString().slice(0, 10);
     return identities.map((identity) => ({
@@ -97,7 +142,17 @@ export function IdentitiesProvider({ children }: { children: ReactNode }) {
 
   return (
     <IdentitiesContext.Provider
-      value={{ identities: enrichedIdentities, updateHabit, uncheckHabit, addHabit, addIdentity }}>
+      value={{
+        identities: enrichedIdentities,
+        updateHabit,
+        uncheckHabit,
+        addHabit,
+        addIdentity,
+        editHabit,
+        deleteHabit,
+        editIdentity,
+        deleteIdentity,
+      }}>
       {children}
     </IdentitiesContext.Provider>
   );

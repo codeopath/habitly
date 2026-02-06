@@ -2,7 +2,15 @@ import { View, Text, Pressable, Animated } from 'react-native';
 import { useEffect, useRef } from 'react';
 import { UserHabit } from '../model/types';
 
-export default function HabitRow({ habit, onPress }: { habit: UserHabit; onPress: () => void }) {
+export default function HabitRow({
+  habit,
+  onPress,
+  onMenuPress,
+}: {
+  habit: UserHabit;
+  onPress: () => void;
+  onMenuPress?: () => void;
+}) {
   const scale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -56,7 +64,15 @@ export default function HabitRow({ habit, onPress }: { habit: UserHabit; onPress
         </Text>
 
         {/* Menu */}
-        <Text className="text-xl text-white/70">⋯</Text>
+        <Pressable
+          onPress={(e) => {
+            e.stopPropagation();
+            onMenuPress?.();
+          }}
+          hitSlop={8}
+          className="items-center justify-center pl-2">
+          <Text className="text-xl text-white/70">⋯</Text>
+        </Pressable>
       </Pressable>
     </Animated.View>
   );

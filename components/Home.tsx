@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ScrollView, Modal } from 'react-native';
+import { View, Text, Pressable, ScrollView, Modal, Alert } from 'react-native';
 import { useState, useMemo } from 'react';
 import HabitRow from './HabitRow';
 import { useRouter } from 'expo-router';
@@ -8,7 +8,8 @@ import { useIdentitiesContext } from '../context/IdentitiesContext';
 
 export default function Home() {
   const [filter, setFilter] = useState<Timing>(Timing.Anytime);
-  const { identities, updateHabit, uncheckHabit } = useIdentitiesContext();
+  const { identities, updateHabit, uncheckHabit, deleteHabit, deleteIdentity } =
+    useIdentitiesContext();
   const [showAddMenu, setShowAddMenu] = useState(false);
   const router = useRouter();
   const [activeHabit, setActiveHabit] = useState<UserHabit | null>(null);
@@ -24,6 +25,51 @@ export default function Home() {
     [identities]
   );
   const completedCount = habits.filter((h) => h.checkedToday).length;
+
+  const handleHabitMenu = (habit: UserHabit & { identityId: string }) => {
+    Alert.alert(habit.label, undefined, [
+      {
+        text: 'Edit',
+        onPress: () =>
+          router.push(`/edit-habit?habitId=${habit.id}&identityId=${habit.identityId}`),
+      },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          Alert.alert('Delete habit?', `"${habit.label}" will be permanently removed.`, [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Delete', style: 'destructive', onPress: () => deleteHabit(habit.id) },
+          ]);
+        },
+      },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
+
+  const handleIdentityMenu = (identity: { id: string; label: string }) => {
+    Alert.alert(identity.label, undefined, [
+      {
+        text: 'Edit',
+        onPress: () => router.push(`/edit-identity?identityId=${identity.id}`),
+      },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          Alert.alert(
+            'Delete identity?',
+            `"${identity.label}" and all its habits will be permanently removed.`,
+            [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'Delete', style: 'destructive', onPress: () => deleteIdentity(identity.id) },
+            ]
+          );
+        },
+      },
+      { text: 'Cancel', style: 'cancel' },
+    ]);
+  };
   const timingOptions = Object.values(Timing);
 
   return (
@@ -94,19 +140,25 @@ export default function Home() {
             return (
               <View key={identity.id} className="mb-8">
                 {/* Identity subheading */}
-                <Text className="mb-3 text-sm font-semibold text-neutral-300">
-                  {identity.icon ? `${identity.icon} ` : ''}
-                  {identity.label}
-                </Text>
+                <Pressable onLongPress={() => handleIdentityMenu(identity)}>
+                  <Text className="mb-3 text-sm font-semibold text-neutral-300">
+                    {identity.icon ? `${identity.icon} ` : ''}
+                    {identity.label}
+                  </Text>
+                </Pressable>
 
                 {/* Habits under identity */}
                 {visibleHabits.map((h) => (
                   <HabitRow
                     key={h.id}
                     habit={h}
+                    onMenuPress={() => handleHabitMenu({ ...h, identityId: identity.id })}
                     onPress={() => {
                       if (h.checkedToday) {
-                        uncheckHabit(h);
+                        Alert.alert('Undo completion?', `Uncheck "${h.label}"?`, [
+                          { text: 'Cancel', style: 'cancel' },
+                          { text: 'Undo', style: 'destructive', onPress: () => uncheckHabit(h) },
+                        ]);
                       } else {
                         setActiveHabit(h);
                         setActiveIdentityId(identity.id);

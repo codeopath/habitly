@@ -5,8 +5,18 @@ type IdentitiesContextType = {
   identities: UserIdentity[];
   updateHabit: (habit: UserHabit, duration: number) => void;
   uncheckHabit: (habit: UserHabit) => void;
-  addHabit: any;
-  addIdentity: any;
+  addHabit: (habit: UserHabit) => void;
+  addIdentity: (identity: UserIdentity) => void;
+  editHabit: (
+    habitId: string,
+    updates: Partial<Pick<UserHabit, 'label' | 'timing' | 'duration'>>
+  ) => void;
+  deleteHabit: (habitId: string) => void;
+  editIdentity: (
+    identityId: string,
+    updates: Partial<Pick<UserIdentity, 'label' | 'icon'>>
+  ) => void;
+  deleteIdentity: (identityId: string) => void;
 };
 
 export const IdentitiesContext = createContext<IdentitiesContextType | null>(null);

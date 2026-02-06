@@ -12,7 +12,8 @@
     },
     "plugins": [
       "expo-router",
-      "expo-notifications"
+      "expo-notifications",
+      "expo-font"
     ],
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -41,6 +42,6 @@
         "projectId": "098766a3-9490-4b00-8b62-329b530e7bb7"
       }
     },
-    "owner": "Tormentor"
+    "owner": "sudiptod81"
   }
 }

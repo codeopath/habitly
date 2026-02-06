@@ -120,7 +120,7 @@ export function IdentitiesProvider({ children }: { children: ReactNode }) {
   };
 
   // Reschedule notifications when habits change (debounced)
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => {
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {

@@ -1,9 +1,3 @@
-import { Text, View } from 'react-native';
+import ProfileScreen from '../../components/ProfileScreen';
 
-export default function TabTwoScreen() {
-  return (
-    <View className="flex-1 items-center justify-center bg-white">
-      <Text className="text-xl font-bold text-red-800">Welcome to Nativewind!</Text>
-    </View>
-  );
-}
+export default () => <ProfileScreen />;

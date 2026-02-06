@@ -44,6 +44,7 @@ export default function HabitRow({ habit, onPress }: { habit: UserHabit; onPress
           className={`flex-1 text-base font-semibold ${
             habit.checkedToday ? 'text-white' : 'text-neutral-200'
           }`}
+          style={habit.checkedToday ? { textDecorationLine: 'line-through' } : undefined}
           numberOfLines={1}>
           {habit.label}
         </Text>

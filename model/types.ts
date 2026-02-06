@@ -1,3 +1,8 @@
+export type HabitLog = {
+  date: string; // YYYY-MM-DD
+  duration: number;
+};
+
 export type UserHabit = {
   id: string;
   identityId: string;
@@ -5,7 +10,8 @@ export type UserHabit = {
   icon: string;
   duration: number;
   timing: Timing;
-  checkedToday: boolean | null;
+  logs: HabitLog[];
+  checkedToday?: boolean;
 };
 
 export enum Timing {

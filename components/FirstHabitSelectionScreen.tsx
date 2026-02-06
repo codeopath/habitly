@@ -27,6 +27,8 @@ export default function FirstHabitSelectionScreen({
   const finalHabit: UserHabit | null = selected
     ? {
         ...selected,
+        identityId: identity.id,
+        logs: [],
         duration,
         timing,
       }
@@ -38,7 +40,7 @@ export default function FirstHabitSelectionScreen({
           duration,
           timing,
           identityId: identity.id,
-          checkedToday: null,
+          logs: [],
         }
       : null;
 

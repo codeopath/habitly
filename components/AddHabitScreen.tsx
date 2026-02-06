@@ -45,9 +45,9 @@ export default function AddHabitScreen({
               label: label.trim(),
               duration,
               icon: '',
-              checkedToday: null,
               identityId: identity,
               timing: timeOfDay,
+              logs: [],
             })
           }>
           <Text

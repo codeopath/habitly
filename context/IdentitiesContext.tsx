@@ -4,6 +4,7 @@ import { UserHabit, UserIdentity } from '../model/types';
 type IdentitiesContextType = {
   identities: UserIdentity[];
   updateHabit: (habit: UserHabit, duration: number) => void;
+  uncheckHabit: (habit: UserHabit) => void;
   addHabit: any;
   addIdentity: any;
 };

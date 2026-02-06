@@ -8,7 +8,7 @@ import { useIdentitiesContext } from '../context/IdentitiesContext';
 
 export default function Home() {
   const [filter, setFilter] = useState<Timing>(Timing.Anytime);
-  const { identities, updateHabit } = useIdentitiesContext();
+  const { identities, updateHabit, uncheckHabit } = useIdentitiesContext();
   const [showAddMenu, setShowAddMenu] = useState(false);
   const router = useRouter();
   const [activeHabit, setActiveHabit] = useState<UserHabit | null>(null);
@@ -68,47 +68,66 @@ export default function Home() {
       <Text className="mb-6 text-sm text-neutral-400">
         {habits.length} habit planned · {completedCount} completed
       </Text>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {identities.map((identity) => {
-          const visibleHabits =
-            filter === Timing.Anytime
-              ? identity.habits
-              : identity.habits.filter((h) => h.timing === filter);
-
-          if (visibleHabits.length === 0) return null;
-
-          return (
-            <View key={identity.id} className="mb-8">
-              {/* Identity subheading */}
-              <Text className="mb-3 text-sm font-semibold text-neutral-300">
-                {identity.icon ? `${identity.icon} ` : ''}
-                {identity.label}
-              </Text>
-
-              {/* Habits under identity */}
-              {visibleHabits.map((h) => (
-                <HabitRow
-                  key={h.id}
-                  habit={h}
-                  onPress={() => {
-                    setActiveHabit(h);
-                    setActiveIdentityId(identity.id);
-                  }}
-                />
-              ))}
-            </View>
-          );
-        })}
-
-        {/* Gentle guidance */}
-        {identities.length === 1 && identities[0].habits.length < 2 && (
-          <Text className="mt-6 text-sm text-neutral-500">
-            Most people start with 2–3 small habits
+      {habits.length === 0 ? (
+        <View className="flex-1 items-center justify-center">
+          <Text className="mb-2 text-5xl">🌱</Text>
+          <Text className="mb-2 text-lg font-semibold text-white">No habits yet</Text>
+          <Text className="mb-6 text-center text-sm text-neutral-400">
+            Start building your identity by adding your first habit
           </Text>
-        )}
+          <Pressable
+            onPress={() => router.push('/select-identity')}
+            className="rounded-full bg-blue-500 px-6 py-3">
+            <Text className="text-base font-semibold text-white">Add Your First Habit</Text>
+          </Pressable>
+        </View>
+      ) : (
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {identities.map((identity) => {
+            const visibleHabits =
+              filter === Timing.Anytime
+                ? identity.habits
+                : identity.habits.filter((h) => h.timing === filter);
 
-        <View className="h-24" />
-      </ScrollView>
+            if (visibleHabits.length === 0) return null;
+
+            return (
+              <View key={identity.id} className="mb-8">
+                {/* Identity subheading */}
+                <Text className="mb-3 text-sm font-semibold text-neutral-300">
+                  {identity.icon ? `${identity.icon} ` : ''}
+                  {identity.label}
+                </Text>
+
+                {/* Habits under identity */}
+                {visibleHabits.map((h) => (
+                  <HabitRow
+                    key={h.id}
+                    habit={h}
+                    onPress={() => {
+                      if (h.checkedToday) {
+                        uncheckHabit(h);
+                      } else {
+                        setActiveHabit(h);
+                        setActiveIdentityId(identity.id);
+                      }
+                    }}
+                  />
+                ))}
+              </View>
+            );
+          })}
+
+          {/* Gentle guidance */}
+          {identities.length === 1 && identities[0].habits.length < 2 && (
+            <Text className="mt-6 text-sm text-neutral-500">
+              Most people start with 2–3 small habits
+            </Text>
+          )}
+
+          <View className="h-24" />
+        </ScrollView>
+      )}
 
       {/* Add menu */}
       <Modal

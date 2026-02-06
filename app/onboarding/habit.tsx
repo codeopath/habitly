@@ -1,13 +1,13 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FirstHabitSelectionScreen from '../../components/FirstHabitSelectionScreen';
-import { Identity } from '../../model/types';
+import { UserIdentity } from '../../model/types';
 import { useIdentitiesContext } from '../../context/IdentitiesContext';
 
 export default function HabitRoute() {
   const router = useRouter();
   const { identity } = useLocalSearchParams<{ identity: string }>();
-  const parsedIdentity: Identity = identity ? JSON.parse(identity) : null;
+  const parsedIdentity: UserIdentity = identity ? JSON.parse(identity) : null;
   const { addIdentity } = useIdentitiesContext();
   return (
     <FirstHabitSelectionScreen

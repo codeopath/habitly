@@ -1,9 +1,8 @@
-import { View, Text, Pressable, Dimensions, Modal } from 'react-native';
-import { useCallback, useEffect, useState } from 'react';
+import { View, Text, Pressable, Modal } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Svg, { Rect, Defs, Mask } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const SPOTLIGHT_PADDING = 8;
 const SPOTLIGHT_RADIUS = 16;
 const TOOLTIP_MARGIN = 16;
@@ -64,26 +63,54 @@ type SpotlightRect = {
   height: number;
 };
 
-function measureTarget(targetKey: string): Promise<SpotlightRect | null> {
+// Measure a target element relative to the overlay's root view
+function measureTargetRelative(
+  targetKey: string,
+  overlayRef: View
+): Promise<SpotlightRect | null> {
   return new Promise((resolve) => {
     const target = tourTargets[targetKey];
     if (!target) {
       resolve(null);
       return;
     }
-    target.measureInWindow((x, y, width, height) => {
-      if (width === 0 && height === 0) {
-        resolve(null);
-      } else {
-        resolve({ x, y, width, height });
+    // measureLayout gives position relative to the overlay ancestor
+    target.measureLayout(
+      overlayRef,
+      (x, y, width, height) => {
+        if (width === 0 && height === 0) {
+          resolve(null);
+        } else {
+          resolve({ x, y, width, height });
+        }
+      },
+      () => {
+        // Fallback to measureInWindow if measureLayout fails (cross-tree elements)
+        target.measureInWindow((wx, wy, ww, wh) => {
+          overlayRef.measureInWindow((ox, oy) => {
+            if (ww === 0 && wh === 0) {
+              resolve(null);
+            } else {
+              resolve({ x: wx - ox, y: wy - oy, width: ww, height: wh });
+            }
+          });
+        });
       }
-    });
+    );
   });
 }
 
 // --- Components ---
 
-function SpotlightOverlay({ spotlight }: { spotlight: SpotlightRect }) {
+function SpotlightOverlay({
+  spotlight,
+  overlayWidth,
+  overlayHeight,
+}: {
+  spotlight: SpotlightRect;
+  overlayWidth: number;
+  overlayHeight: number;
+}) {
   const sx = spotlight.x - SPOTLIGHT_PADDING;
   const sy = spotlight.y - SPOTLIGHT_PADDING;
   const sw = spotlight.width + SPOTLIGHT_PADDING * 2;
@@ -91,18 +118,18 @@ function SpotlightOverlay({ spotlight }: { spotlight: SpotlightRect }) {
 
   return (
     <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
-      <Svg height={SCREEN_HEIGHT} width={SCREEN_WIDTH}>
+      <Svg height={overlayHeight} width={overlayWidth}>
         <Defs>
           <Mask id="spotlight">
-            <Rect x="0" y="0" width={SCREEN_WIDTH} height={SCREEN_HEIGHT} fill="white" />
+            <Rect x="0" y="0" width={overlayWidth} height={overlayHeight} fill="white" />
             <Rect x={sx} y={sy} width={sw} height={sh} rx={SPOTLIGHT_RADIUS} fill="black" />
           </Mask>
         </Defs>
         <Rect
           x="0"
           y="0"
-          width={SCREEN_WIDTH}
-          height={SCREEN_HEIGHT}
+          width={overlayWidth}
+          height={overlayHeight}
           fill="rgba(0,0,0,0.82)"
           mask="url(#spotlight)"
         />
@@ -130,6 +157,8 @@ function TooltipCard({
   spotlight,
   stepIndex,
   totalSteps,
+  overlayWidth,
+  overlayHeight,
   onNext,
   onBack,
   onSkip,
@@ -138,6 +167,8 @@ function TooltipCard({
   spotlight: SpotlightRect;
   stepIndex: number;
   totalSteps: number;
+  overlayWidth: number;
+  overlayHeight: number;
   onNext: () => void;
   onBack: () => void;
   onSkip: () => void;
@@ -152,15 +183,15 @@ function TooltipCard({
     if (tooltipTop < 60) tooltipTop = 60;
   } else {
     tooltipTop = spotlight.y + spotlight.height + SPOTLIGHT_PADDING + TOOLTIP_MARGIN;
-    if (tooltipTop + 180 > SCREEN_HEIGHT - 40) {
-      tooltipTop = SCREEN_HEIGHT - 220;
+    if (tooltipTop + 180 > overlayHeight - 40) {
+      tooltipTop = overlayHeight - 220;
     }
   }
 
   // Arrow positioning
   const arrowLeft = Math.min(
     Math.max(spotlight.x + spotlight.width / 2 - 10, 32),
-    SCREEN_WIDTH - 52
+    overlayWidth - 52
   );
 
   return (
@@ -278,11 +309,12 @@ export default function AppTour() {
   const [stepIndex, setStepIndex] = useState(0);
   const [spotlight, setSpotlight] = useState<SpotlightRect | null>(null);
   const [activeSteps, setActiveSteps] = useState<TourStep[]>(TOUR_STEPS);
+  const [overlaySize, setOverlaySize] = useState({ width: 0, height: 0 });
+  const overlayRef = useRef<View>(null);
 
   useEffect(() => {
     AsyncStorage.getItem('hasToured').then((value) => {
       if (value !== 'true') {
-        // Delay slightly so the UI has time to render and refs are set
         const timer = setTimeout(() => setPhase('prompt'), 800);
         return () => clearTimeout(timer);
       }
@@ -291,9 +323,10 @@ export default function AppTour() {
 
   // Determine which steps are available (skip if target ref missing)
   const resolveActiveSteps = useCallback(async () => {
+    if (!overlayRef.current) return [];
     const available: TourStep[] = [];
     for (const step of TOUR_STEPS) {
-      const rect = await measureTarget(step.targetKey);
+      const rect = await measureTargetRelative(step.targetKey, overlayRef.current);
       if (rect) available.push(step);
     }
     setActiveSteps(available);
@@ -302,10 +335,11 @@ export default function AppTour() {
 
   const measureCurrentStep = useCallback(
     async (index: number, steps?: TourStep[]) => {
+      if (!overlayRef.current) return;
       const stepsToUse = steps || activeSteps;
       if (index < 0 || index >= stepsToUse.length) return;
       const step = stepsToUse[index];
-      const rect = await measureTarget(step.targetKey);
+      const rect = await measureTargetRelative(step.targetKey, overlayRef.current);
       setSpotlight(rect);
     },
     [activeSteps]
@@ -313,14 +347,16 @@ export default function AppTour() {
 
   const startTour = useCallback(async () => {
     setPhase('tour');
-    const steps = await resolveActiveSteps();
-    if (steps.length === 0) {
-      await dismiss();
-      return;
-    }
-    setStepIndex(0);
-    // Small delay to ensure modal is visible before measuring
-    setTimeout(() => measureCurrentStep(0, steps), 300);
+    // Wait for overlay to mount and layout
+    setTimeout(async () => {
+      const steps = await resolveActiveSteps();
+      if (steps.length === 0) {
+        await dismiss();
+        return;
+      }
+      setStepIndex(0);
+      setTimeout(() => measureCurrentStep(0, steps), 100);
+    }, 400);
   }, [resolveActiveSteps, measureCurrentStep]);
 
   const dismiss = async () => {
@@ -425,27 +461,48 @@ export default function AppTour() {
     );
   }
 
-  // --- Tour Phase ---
+  // --- Tour Phase (absolute overlay, not a Modal) ---
   const currentStep = activeSteps[stepIndex];
 
   return (
-    <Modal visible animationType="fade" transparent statusBarTranslucent>
-      <View style={{ flex: 1 }}>
-        {spotlight && currentStep && (
-          <>
-            <SpotlightOverlay spotlight={spotlight} />
-            <TooltipCard
-              step={currentStep}
-              spotlight={spotlight}
-              stepIndex={stepIndex}
-              totalSteps={activeSteps.length}
-              onNext={goNext}
-              onBack={goBack}
-              onSkip={dismiss}
-            />
-          </>
-        )}
-      </View>
-    </Modal>
+    <View
+      ref={overlayRef}
+      onLayout={(e) => {
+        setOverlaySize({
+          width: e.nativeEvent.layout.width,
+          height: e.nativeEvent.layout.height,
+        });
+      }}
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 9999,
+        elevation: 9999,
+      }}
+      pointerEvents="box-none">
+      {spotlight && currentStep && overlaySize.width > 0 && (
+        <View style={{ flex: 1 }} pointerEvents="box-none">
+          <SpotlightOverlay
+            spotlight={spotlight}
+            overlayWidth={overlaySize.width}
+            overlayHeight={overlaySize.height}
+          />
+          <TooltipCard
+            step={currentStep}
+            spotlight={spotlight}
+            stepIndex={stepIndex}
+            totalSteps={activeSteps.length}
+            overlayWidth={overlaySize.width}
+            overlayHeight={overlaySize.height}
+            onNext={goNext}
+            onBack={goBack}
+            onSkip={dismiss}
+          />
+        </View>
+      )}
+    </View>
   );
 }

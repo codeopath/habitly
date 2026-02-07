@@ -12,6 +12,9 @@ export default function RootLayout() {
   const [hasOnboarded, setHasOnboarded] = useState(false);
 
   useEffect(() => {
+    if (__DEV__) {
+      AsyncStorage.clear();
+    }
     requestPermissions();
   }, []);
 

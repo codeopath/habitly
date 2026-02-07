@@ -1,16 +1,12 @@
 import { View, Text, Pressable, Animated } from 'react-native';
-import { useEffect, useRef } from 'react';
+import { forwardRef, useEffect, useRef } from 'react';
 import { UserHabit } from '../model/types';
 
-export default function HabitRow({
-  habit,
-  onPress,
-  onMenuPress,
-}: {
+const HabitRow = forwardRef<View, {
   habit: UserHabit;
   onPress: () => void;
   onMenuPress?: () => void;
-}) {
+}>(({ habit, onPress, onMenuPress }, ref) => {
   const scale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -31,7 +27,7 @@ export default function HabitRow({
   }, [habit.checkedToday, scale]);
 
   return (
-    <Animated.View style={{ transform: [{ scale }] }}>
+    <Animated.View style={{ transform: [{ scale }] }} ref={ref}>
       <Pressable
         onPress={onPress}
         className={`mb-3 flex-row items-center rounded-2xl px-4 py-4 ${
@@ -76,4 +72,6 @@ export default function HabitRow({
       </Pressable>
     </Animated.View>
   );
-}
+});
+
+export default HabitRow;

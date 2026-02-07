@@ -1,10 +1,11 @@
 import { View, Text, Pressable, ScrollView, Modal, Alert } from 'react-native';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import HabitRow from './HabitRow';
 import { useRouter } from 'expo-router';
 import { Timing, UserHabit } from '../model/types';
 import HabitActionModal from './HabitActionModal';
 import { useIdentitiesContext } from '../context/IdentitiesContext';
+import { tourTargets } from './AppTour';
 
 export default function Home() {
   const [filter, setFilter] = useState<Timing>(Timing.Anytime);
@@ -25,6 +26,17 @@ export default function Home() {
     [identities]
   );
   const completedCount = habits.filter((h) => h.checkedToday).length;
+
+  // Track whether first habit ref has been set for this render
+  let firstHabitRefSet = false;
+
+  useEffect(() => {
+    return () => {
+      tourTargets.addButton = null;
+      tourTargets.filterPills = null;
+      tourTargets.firstHabit = null;
+    };
+  }, []);
 
   const handleHabitMenu = (habit: UserHabit & { identityId: string }) => {
     Alert.alert(habit.label, undefined, [
@@ -87,6 +99,7 @@ export default function Home() {
         </View>
 
         <Pressable
+          ref={(el) => { tourTargets.addButton = el as unknown as View; }}
           onPress={() => setShowAddMenu(true)}
           className="h-11 w-11 items-center justify-center rounded-full bg-blue-500">
           <Text className="text-2xl text-white">+</Text>
@@ -94,7 +107,9 @@ export default function Home() {
       </View>
 
       {/* Filters */}
-      <View className="mb-4 flex-row flex-wrap gap-3">
+      <View
+        ref={(el) => { tourTargets.filterPills = el; }}
+        className="mb-4 flex-row flex-wrap gap-3">
         {timingOptions.map((f) => (
           <Pressable
             key={f}
@@ -148,9 +163,13 @@ export default function Home() {
                 </Pressable>
 
                 {/* Habits under identity */}
-                {visibleHabits.map((h) => (
+                {visibleHabits.map((h) => {
+                  const isFirst = !firstHabitRefSet;
+                  if (isFirst) firstHabitRefSet = true;
+                  return (
                   <HabitRow
                     key={h.id}
+                    ref={isFirst ? (el) => { tourTargets.firstHabit = el as unknown as View; } : undefined}
                     habit={h}
                     onMenuPress={() => handleHabitMenu({ ...h, identityId: identity.id })}
                     onPress={() => {
@@ -165,7 +184,8 @@ export default function Home() {
                       }
                     }}
                   />
-                ))}
+                  );
+                })}
               </View>
             );
           })}

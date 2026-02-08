@@ -1,7 +1,8 @@
-import { View, Text, ScrollView, Switch } from 'react-native';
+import { View, Text, ScrollView, Switch, Pressable, Alert } from 'react-native';
 import { useEffect, useMemo, useState } from 'react';
 import Constants from 'expo-constants';
 import { useIdentitiesContext } from '../context/IdentitiesContext';
+import { useRevenueCat } from '../context/RevenueCatContext';
 import {
   getNotificationsEnabled,
   setNotificationsEnabled,
@@ -10,6 +11,7 @@ import {
 
 export default function ProfileScreen() {
   const { identities } = useIdentitiesContext();
+  const { isProUser, showPaywall, showCustomerCenter, restorePurchases } = useRevenueCat();
 
   const { habitCount, daysActive } = useMemo(() => {
     const allLogs: { date: string }[] = [];
@@ -100,6 +102,43 @@ export default function ProfileScreen() {
             thumbColor="#fff"
           />
         </View>
+
+        {/* Subscription section */}
+        <Text className="mb-3 mt-6 text-sm font-semibold text-neutral-400">SUBSCRIPTION</Text>
+        {isProUser ? (
+          <View className="rounded-2xl bg-neutral-800 px-4 py-4">
+            <View className="mb-3 flex-row items-center">
+              <Text className="mr-2 text-lg">&#x2B50;</Text>
+              <Text className="text-base font-semibold text-white">Habitly Pro</Text>
+            </View>
+            <Pressable
+              onPress={showCustomerCenter}
+              className="rounded-full bg-neutral-700 py-3">
+              <Text className="text-center text-sm font-semibold text-white">
+                Manage Subscription
+              </Text>
+            </Pressable>
+          </View>
+        ) : (
+          <Pressable onPress={showPaywall} className="rounded-2xl bg-blue-500 px-4 py-5">
+            <Text className="text-center text-lg font-bold text-white">Upgrade to Pro</Text>
+            <Text className="mt-1 text-center text-sm text-blue-100">
+              Unlock all features and unlimited habits
+            </Text>
+          </Pressable>
+        )}
+        <Pressable
+          onPress={async () => {
+            try {
+              await restorePurchases();
+              Alert.alert('Purchases Restored', 'Your purchases have been restored successfully.');
+            } catch {
+              Alert.alert('Error', 'Could not restore purchases. Please try again.');
+            }
+          }}
+          className="mt-3 mb-2">
+          <Text className="text-center text-sm text-neutral-400">Restore Purchases</Text>
+        </Pressable>
 
         {/* About section */}
         <Text className="mb-3 mt-6 text-sm font-semibold text-neutral-400">ABOUT</Text>

@@ -6,6 +6,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import '../global.css';
 import { IdentitiesProvider } from '../context/IdentitiesProvider';
+import { RevenueCatProvider } from '../context/RevenueCatProvider';
 import { requestPermissions } from '../utils/notifications';
 
 export default function RootLayout() {
@@ -34,8 +35,9 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <IdentitiesProvider>
-        <Stack screenOptions={{ headerShown: false }}>
+      <RevenueCatProvider>
+        <IdentitiesProvider>
+          <Stack screenOptions={{ headerShown: false }}>
           {!hasOnboarded && <Stack.Screen name="onboarding" />}
 
           <Stack.Screen name="(tabs)" />
@@ -48,8 +50,9 @@ export default function RootLayout() {
             name="edit-identity"
             options={{ presentation: 'modal', headerShown: false }}
           />
-        </Stack>
-      </IdentitiesProvider>
+          </Stack>
+        </IdentitiesProvider>
+      </RevenueCatProvider>
     </GestureHandlerRootView>
   );
 }

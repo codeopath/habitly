@@ -1,8 +1,10 @@
 import { View, Text, TextInput, Pressable, ScrollView } from 'react-native';
-import { useState } from 'react';
-import { Timing, UserHabit } from '../model/types';
+import { useEffect, useState } from 'react';
+import { Habit, Timing, UserHabit } from '../model/types';
 import * as Crypto from 'expo-crypto';
 import { useLocalSearchParams } from 'expo-router';
+import { fetchIdentities } from '../api/identities';
+import { useIdentitiesContext } from '../context/IdentitiesContext';
 
 const TIMING_OPTIONS = [
   Timing.Morning,
@@ -28,10 +30,28 @@ export default function AddHabitScreen({
   title?: string;
 }) {
   const { identity } = useLocalSearchParams<{ identity: string }>();
+  const { identities: userIdentities } = useIdentitiesContext();
 
   const [label, setLabel] = useState(initialLabel);
+  const [icon, setIcon] = useState('');
   const [timeOfDay, setTimeOfDay] = useState<Timing>(initialTiming);
   const [duration, setDuration] = useState<number>(initialDuration);
+  const [suggestedHabits, setSuggestedHabits] = useState<Habit[]>([]);
+
+  useEffect(() => {
+    fetchIdentities().then((data) => {
+      const userIdentity = userIdentities.find((i) => i.id === identity);
+      if (!userIdentity) return;
+
+      const existingLabels = new Set(userIdentity.habits.map((h) => h.label));
+
+      // Find the matching template identity by label
+      const matchingTemplate = data.find((t) => t.label === userIdentity.label);
+      if (!matchingTemplate) return;
+
+      setSuggestedHabits(matchingTemplate.habits.filter((h) => !existingLabels.has(h.label)));
+    });
+  }, [identity, userIdentities]);
 
   const canSave = label.trim().length > 0;
 
@@ -52,7 +72,7 @@ export default function AddHabitScreen({
               id: Crypto.randomUUID(),
               label: label.trim(),
               duration,
-              icon: '',
+              icon,
               identityId: identity,
               timing: timeOfDay,
               logs: [],
@@ -66,12 +86,55 @@ export default function AddHabitScreen({
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Suggested habits */}
+        {suggestedHabits.length > 0 && (
+          <View className="mb-6">
+            <Text className="mb-3 text-xs font-semibold tracking-widest text-neutral-400">
+              SUGGESTIONS
+            </Text>
+
+            <View className="flex-row flex-wrap">
+              {suggestedHabits.map((h) => {
+                const isSelected = label === h.label;
+
+                return (
+                  <Pressable
+                    key={h.id}
+                    onPress={() => {
+                      setLabel(h.label);
+                      setIcon(h.icon);
+                    }}
+                    className={`mb-3 mr-3 flex-row items-center rounded-full px-4 py-2 ${
+                      isSelected ? 'bg-blue-500' : 'bg-neutral-800'
+                    }`}>
+                    <Text className="mr-2 text-base">{h.icon}</Text>
+                    <Text
+                      className={`text-sm font-semibold ${
+                        isSelected ? 'text-white' : 'text-neutral-400'
+                      }`}>
+                      {h.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        )}
+
+        {/* Divider */}
+        {suggestedHabits.length > 0 && (
+          <Text className="mb-6 text-center text-sm text-neutral-500">Or type your own</Text>
+        )}
+
         {/* Habit name */}
         <View className="mb-6">
           <Text className="mb-2 text-xs font-semibold tracking-widest text-neutral-400">HABIT</Text>
           <TextInput
             value={label}
-            onChangeText={setLabel}
+            onChangeText={(t) => {
+              setLabel(t);
+              setIcon('');
+            }}
             placeholder="What do you want to do?"
             placeholderTextColor="#6B7280"
             className="rounded-2xl bg-neutral-800 px-4 py-4 text-base text-white"

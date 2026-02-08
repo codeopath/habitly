@@ -12,8 +12,10 @@ export default function HabitRoute() {
   return (
     <FirstHabitSelectionScreen
       identity={parsedIdentity}
+      onBack={() => router.back()}
       onSkip={async () => {
         await AsyncStorage.setItem('hasOnboarded', 'true');
+        parsedIdentity.habits = [];
         addIdentity(parsedIdentity);
         router.replace('/(tabs)');
       }}

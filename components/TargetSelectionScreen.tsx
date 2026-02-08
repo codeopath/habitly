@@ -5,8 +5,10 @@ import { Identity } from '../model/types';
 
 export default function TargetSelectionScreen({
   onNext,
+  onBack,
 }: {
   onNext: (identity: Identity) => void;
+  onBack: () => void;
 }) {
   const [selected, setSelected] = useState<Identity | null>(null);
   const [identities, setIdentities] = useState<Identity[]>([]);
@@ -24,6 +26,11 @@ export default function TargetSelectionScreen({
   }, []);
   return (
     <View className="flex-1 bg-neutral-900 px-6 pt-16">
+      {/* Back button */}
+      <Pressable onPress={onBack} className="mb-4 self-start">
+        <Text className="text-2xl text-white">←</Text>
+      </Pressable>
+
       {/* Progress bar */}
       <View className="mb-10 flex-row space-x-2">
         <View className="h-1 flex-1 rounded bg-blue-500" />
@@ -32,8 +39,8 @@ export default function TargetSelectionScreen({
         <View className="h-1 flex-1 rounded bg-neutral-700" />
       </View>
 
-      <Text className="text-3xl font-extrabold text-white">I want to...</Text>
       <Text className="mt-2 text-sm text-neutral-400">Help us understand your needs better</Text>
+      <Text className="text-3xl font-extrabold text-white">I want to...</Text>
 
       {/* Cards */}
       <ScrollView

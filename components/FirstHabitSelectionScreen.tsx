@@ -6,10 +6,12 @@ export default function FirstHabitSelectionScreen({
   identity,
   onNext,
   onSkip,
+  onBack,
 }: {
   identity: UserIdentity;
   onNext: (habit: UserHabit) => void;
   onSkip: () => void;
+  onBack: () => void;
 }) {
   const [selected, setSelected] = useState<UserHabit | null>(null);
   const [customLabel, setCustomLabel] = useState('');
@@ -46,6 +48,11 @@ export default function FirstHabitSelectionScreen({
 
   return (
     <View className="flex-1 bg-neutral-900 px-6 pt-16">
+      {/* Back button */}
+      <Pressable onPress={onBack} className="mb-4 self-start">
+        <Text className="text-2xl text-white">←</Text>
+      </Pressable>
+
       {/* Progress */}
       <View className="mb-10 flex-row space-x-2">
         {Array.from({ length: 4 }).map((_, i) => (

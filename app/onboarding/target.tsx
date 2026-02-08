@@ -6,6 +6,7 @@ export default function TargetRoute() {
 
   return (
     <TargetSelectionScreen
+      onBack={() => router.back()}
       onNext={(identity) => {
         router.push({
           pathname: '/onboarding/habit',

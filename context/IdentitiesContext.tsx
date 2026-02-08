@@ -17,6 +17,7 @@ type IdentitiesContextType = {
     updates: Partial<Pick<UserIdentity, 'label' | 'icon'>>
   ) => void;
   deleteIdentity: (identityId: string) => void;
+  reorderHabits: (identityId: string, reorderedHabits: UserHabit[]) => void;
 };
 
 export const IdentitiesContext = createContext<IdentitiesContextType | null>(null);

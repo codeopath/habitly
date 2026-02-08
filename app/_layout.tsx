@@ -2,6 +2,7 @@ import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import '../global.css';
 import { IdentitiesProvider } from '../context/IdentitiesProvider';
@@ -32,21 +33,23 @@ export default function RootLayout() {
   }
 
   return (
-    <IdentitiesProvider>
-      <Stack screenOptions={{ headerShown: false }}>
-        {!hasOnboarded && <Stack.Screen name="onboarding" />}
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <IdentitiesProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          {!hasOnboarded && <Stack.Screen name="onboarding" />}
 
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen
-          name="select-identity"
-          options={{ presentation: 'modal', headerShown: false }}
-        />
-        <Stack.Screen name="edit-habit" options={{ presentation: 'modal', headerShown: false }} />
-        <Stack.Screen
-          name="edit-identity"
-          options={{ presentation: 'modal', headerShown: false }}
-        />
-      </Stack>
-    </IdentitiesProvider>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen
+            name="select-identity"
+            options={{ presentation: 'modal', headerShown: false }}
+          />
+          <Stack.Screen name="edit-habit" options={{ presentation: 'modal', headerShown: false }} />
+          <Stack.Screen
+            name="edit-identity"
+            options={{ presentation: 'modal', headerShown: false }}
+          />
+        </Stack>
+      </IdentitiesProvider>
+    </GestureHandlerRootView>
   );
 }

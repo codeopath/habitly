@@ -6,7 +6,9 @@ const HabitRow = forwardRef<View, {
   habit: UserHabit;
   onPress: () => void;
   onMenuPress?: () => void;
-}>(({ habit, onPress, onMenuPress }, ref) => {
+  drag?: () => void;
+  isActive?: boolean;
+}>(({ habit, onPress, onMenuPress, drag, isActive }, ref) => {
   const scale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -27,9 +29,16 @@ const HabitRow = forwardRef<View, {
   }, [habit.checkedToday, scale]);
 
   return (
-    <Animated.View style={{ transform: [{ scale }] }} ref={ref}>
+    <Animated.View
+      style={[
+        { transform: [{ scale }] },
+        isActive && { opacity: 0.9, transform: [{ scale: 1.04 }] },
+      ]}
+      ref={ref}>
       <Pressable
         onPress={onPress}
+        onLongPress={drag}
+        disabled={isActive}
         className={`mb-3 flex-row items-center rounded-2xl px-4 py-4 ${
           habit.checkedToday ? 'bg-green-600' : 'bg-neutral-800'
         }`}>

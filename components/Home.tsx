@@ -6,10 +6,11 @@ import { Timing, UserHabit } from '../model/types';
 import HabitActionModal from './HabitActionModal';
 import { useIdentitiesContext } from '../context/IdentitiesContext';
 import { tourTargets } from './AppTour';
+import DraggableFlatList, { ScaleDecorator, RenderItemParams } from 'react-native-draggable-flatlist';
 
 export default function Home() {
   const [filter, setFilter] = useState<Timing>(Timing.Anytime);
-  const { identities, updateHabit, uncheckHabit, deleteHabit, deleteIdentity } =
+  const { identities, updateHabit, uncheckHabit, deleteHabit, deleteIdentity, reorderHabits } =
     useIdentitiesContext();
   const [showAddMenu, setShowAddMenu] = useState(false);
   const router = useRouter();
@@ -163,29 +164,42 @@ export default function Home() {
                 </Pressable>
 
                 {/* Habits under identity */}
-                {visibleHabits.map((h) => {
-                  const isFirst = !firstHabitRefSet;
-                  if (isFirst) firstHabitRefSet = true;
-                  return (
-                  <HabitRow
-                    key={h.id}
-                    ref={isFirst ? (el) => { tourTargets.firstHabit = el as unknown as View; } : undefined}
-                    habit={h}
-                    onMenuPress={() => handleHabitMenu({ ...h, identityId: identity.id })}
-                    onPress={() => {
-                      if (h.checkedToday) {
-                        Alert.alert('Undo completion?', `Uncheck "${h.label}"?`, [
-                          { text: 'Cancel', style: 'cancel' },
-                          { text: 'Undo', style: 'destructive', onPress: () => uncheckHabit(h) },
-                        ]);
-                      } else {
-                        setActiveHabit(h);
-                        setActiveIdentityId(identity.id);
-                      }
-                    }}
-                  />
-                  );
-                })}
+                <DraggableFlatList
+                  data={visibleHabits}
+                  keyExtractor={(h) => h.id}
+                  scrollEnabled={false}
+                  onDragEnd={({ data }) => {
+                    if (filter === Timing.Anytime) {
+                      reorderHabits(identity.id, data);
+                    }
+                  }}
+                  renderItem={({ item: h, drag, isActive }: RenderItemParams<UserHabit>) => {
+                    const isFirst = !firstHabitRefSet;
+                    if (isFirst) firstHabitRefSet = true;
+                    return (
+                      <ScaleDecorator>
+                        <HabitRow
+                          ref={isFirst ? (el) => { tourTargets.firstHabit = el as unknown as View; } : undefined}
+                          habit={h}
+                          drag={filter === Timing.Anytime ? drag : undefined}
+                          isActive={isActive}
+                          onMenuPress={() => handleHabitMenu({ ...h, identityId: identity.id })}
+                          onPress={() => {
+                            if (h.checkedToday) {
+                              Alert.alert('Undo completion?', `Uncheck "${h.label}"?`, [
+                                { text: 'Cancel', style: 'cancel' },
+                                { text: 'Undo', style: 'destructive', onPress: () => uncheckHabit(h) },
+                              ]);
+                            } else {
+                              setActiveHabit(h);
+                              setActiveIdentityId(identity.id);
+                            }
+                          }}
+                        />
+                      </ScaleDecorator>
+                    );
+                  }}
+                />
               </View>
             );
           })}

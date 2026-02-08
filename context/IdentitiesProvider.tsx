@@ -119,6 +119,14 @@ export function IdentitiesProvider({ children }: { children: ReactNode }) {
     setIdentities((prev) => prev.filter((identity) => identity.id !== identityId));
   };
 
+  const reorderHabits = (identityId: string, reorderedHabits: UserHabit[]) => {
+    setIdentities((prev) =>
+      prev.map((identity) =>
+        identity.id === identityId ? { ...identity, habits: reorderedHabits } : identity
+      )
+    );
+  };
+
   // Reschedule notifications when habits change (debounced)
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   useEffect(() => {
@@ -152,6 +160,7 @@ export function IdentitiesProvider({ children }: { children: ReactNode }) {
         deleteHabit,
         editIdentity,
         deleteIdentity,
+        reorderHabits,
       }}>
       {children}
     </IdentitiesContext.Provider>

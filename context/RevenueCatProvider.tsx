@@ -11,25 +11,31 @@ export function RevenueCatProvider({ children }: { children: ReactNode }) {
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo | null>(null);
 
   useEffect(() => {
-    async function init() {
-      if (__DEV__) {
-        Purchases.setLogLevel(LOG_LEVEL.DEBUG);
-      }
-
-      Purchases.configure({ apiKey: API_KEY });
-
-      const info = await Purchases.getCustomerInfo();
+    const onCustomerInfoUpdate = (info: CustomerInfo) => {
       setCustomerInfo(info);
+    };
+
+    async function init() {
+      try {
+        if (__DEV__) {
+          Purchases.setLogLevel(LOG_LEVEL.DEBUG);
+        }
+
+        Purchases.configure({ apiKey: API_KEY });
+
+        Purchases.addCustomerInfoUpdateListener(onCustomerInfoUpdate);
+
+        const info = await Purchases.getCustomerInfo();
+        setCustomerInfo(info);
+      } catch (e) {
+        console.error('RevenueCat init failed:', e);
+      }
     }
 
     init();
 
-    const listener = Purchases.addCustomerInfoUpdateListener((info) => {
-      setCustomerInfo(info);
-    });
-
     return () => {
-      listener.remove();
+      Purchases.removeCustomerInfoUpdateListener(onCustomerInfoUpdate);
     };
   }, []);
 
@@ -37,18 +43,30 @@ export function RevenueCatProvider({ children }: { children: ReactNode }) {
     customerInfo?.entitlements.active[ENTITLEMENT_ID] !== undefined;
 
   const showPaywall = useCallback(async () => {
-    await RevenueCatUI.presentPaywallIfNeeded({
-      requiredEntitlementIdentifier: ENTITLEMENT_ID,
-    });
+    try {
+      await RevenueCatUI.presentPaywallIfNeeded({
+        requiredEntitlementIdentifier: ENTITLEMENT_ID,
+      });
+    } catch (e) {
+      console.error('Failed to show paywall:', e);
+    }
   }, []);
 
   const showCustomerCenter = useCallback(async () => {
-    await RevenueCatUI.presentCustomerCenter();
+    try {
+      await RevenueCatUI.presentCustomerCenter();
+    } catch (e) {
+      console.error('Failed to show customer center:', e);
+    }
   }, []);
 
   const restorePurchases = useCallback(async () => {
-    const info = await Purchases.restorePurchases();
-    setCustomerInfo(info);
+    try {
+      const info = await Purchases.restorePurchases();
+      setCustomerInfo(info);
+    } catch (e) {
+      console.error('Failed to restore purchases:', e);
+    }
   }, []);
 
   return (

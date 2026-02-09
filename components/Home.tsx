@@ -1,5 +1,6 @@
 import { View, Text, Pressable, ScrollView, Modal, Alert } from 'react-native';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import * as Haptics from 'expo-haptics';
 import HabitRow from './HabitRow';
 import { useRouter } from 'expo-router';
 import { Timing, UserHabit } from '../model/types';
@@ -27,6 +28,18 @@ export default function Home() {
     [identities]
   );
   const completedCount = habits.filter((h) => h.checkedToday).length;
+  const allDone = habits.length > 0 && completedCount === habits.length;
+  const celebratedRef = useRef(false);
+
+  useEffect(() => {
+    if (allDone && !celebratedRef.current) {
+      celebratedRef.current = true;
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+    if (!allDone) {
+      celebratedRef.current = false;
+    }
+  }, [allDone]);
 
   // Track whether first habit ref has been set for this render
   let firstHabitRefSet = false;
@@ -127,9 +140,17 @@ export default function Home() {
       </View>
 
       {/* Today summary */}
-      <Text className="mb-6 text-sm text-neutral-400">
+      <Text className="mb-3 text-sm text-neutral-400">
         {habits.length} habit planned · {completedCount} completed
       </Text>
+
+      {allDone && (
+        <View className="mb-4 rounded-2xl bg-green-600/20 px-4 py-3">
+          <Text className="text-center text-sm font-semibold text-green-400">
+            All habits completed! Great job today!
+          </Text>
+        </View>
+      )}
       {habits.length === 0 ? (
         <View className="flex-1 items-center justify-center">
           <Text className="mb-2 text-5xl">🌱</Text>

@@ -1,5 +1,6 @@
 import { View, Text, Pressable, Modal } from 'react-native';
 import { useState } from 'react';
+import * as Haptics from 'expo-haptics';
 import { UserHabit } from '../model/types';
 
 export default function HabitActionModal({
@@ -15,6 +16,12 @@ export default function HabitActionModal({
 }) {
   const [duration, setDuration] = useState(habit.duration);
 
+  const adjustDuration = (delta: number) => {
+    const next = Math.max(5, duration + delta);
+    setDuration(next);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
   return (
     <Modal visible={visible} transparent animationType="slide">
       <Pressable className="flex-1 bg-black/50" onPress={onClose} />
@@ -27,7 +34,7 @@ export default function HabitActionModal({
         {/* Duration controls */}
         <View className="mb-6 flex-row items-center justify-between">
           <Pressable
-            onPress={() => setDuration(Math.max(5, duration - 5))}
+            onPress={() => adjustDuration(-5)}
             className="h-10 w-10 items-center justify-center rounded-full bg-neutral-800">
             <Text className="text-xl text-white">−</Text>
           </Pressable>
@@ -35,7 +42,7 @@ export default function HabitActionModal({
           <Text className="text-2xl font-bold text-white">{duration} min</Text>
 
           <Pressable
-            onPress={() => setDuration(duration + 5)}
+            onPress={() => adjustDuration(5)}
             className="h-10 w-10 items-center justify-center rounded-full bg-neutral-800">
             <Text className="text-xl text-white">+</Text>
           </Pressable>
@@ -43,7 +50,10 @@ export default function HabitActionModal({
 
         {/* Actions */}
         <Pressable
-          onPress={() => onComplete(duration)}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            onComplete(duration);
+          }}
           className="mb-3 rounded-2xl bg-blue-500 py-4">
           <Text className="text-center text-base font-semibold text-white">Mark completed</Text>
         </Pressable>

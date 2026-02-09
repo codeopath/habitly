@@ -79,13 +79,27 @@ export async function setNotificationsEnabled(enabled: boolean): Promise<void> {
   }
 }
 
-const TIMING_HOURS: Record<Timing, number> = {
+const DEFAULT_TIMING_HOURS: Record<Timing, number> = {
   [Timing.Morning]: 8,
   [Timing.Afternoon]: 13,
   [Timing.Evening]: 18,
   [Timing.Night]: 21,
   [Timing.Anytime]: 10,
 };
+
+const NOTIFICATION_TIMINGS_KEY = 'notificationTimings';
+
+export async function getNotificationTimings(): Promise<Record<Timing, number>> {
+  const saved = await AsyncStorage.getItem(NOTIFICATION_TIMINGS_KEY);
+  if (saved) {
+    return { ...DEFAULT_TIMING_HOURS, ...JSON.parse(saved) };
+  }
+  return { ...DEFAULT_TIMING_HOURS };
+}
+
+export async function setNotificationTimings(timings: Record<Timing, number>): Promise<void> {
+  await AsyncStorage.setItem(NOTIFICATION_TIMINGS_KEY, JSON.stringify(timings));
+}
 
 export async function scheduleHabitNotifications(identities: UserIdentity[]): Promise<void> {
   if (isExpoGo) return;
@@ -114,8 +128,10 @@ export async function scheduleHabitNotifications(identities: UserIdentity[]): Pr
       }
     }
 
+    const timingHours = await getNotificationTimings();
+
     for (const [timing, labels] of groups) {
-      const hour = TIMING_HOURS[timing];
+      const hour = timingHours[timing];
       const body =
         labels.length === 1
           ? `Time for: ${labels[0]}`

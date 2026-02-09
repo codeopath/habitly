@@ -1,18 +1,30 @@
-import { View, Text, ScrollView, Switch, Pressable, Alert } from 'react-native';
+import { View, Text, ScrollView, Switch, Pressable, Alert, Modal } from 'react-native';
 import { useEffect, useMemo, useState } from 'react';
 import Constants from 'expo-constants';
+import { cacheDirectory, writeAsStringAsync } from 'expo-file-system/legacy';
+import * as Sharing from 'expo-sharing';
 import { useIdentitiesContext } from '../context/IdentitiesContext';
 import { useRevenueCat } from '../context/RevenueCatContext';
+import { Timing } from '../model/types';
 import {
   getNotificationsEnabled,
   setNotificationsEnabled,
   scheduleHabitNotifications,
+  getNotificationTimings,
+  setNotificationTimings,
 } from '../utils/notifications';
+
+const HOURS = Array.from({ length: 19 }, (_, i) => i + 5); // 5 AM to 11 PM
+
+function formatHour(h: number): string {
+  const suffix = h >= 12 ? 'PM' : 'AM';
+  const hour = h > 12 ? h - 12 : h === 0 ? 12 : h;
+  return `${hour}:00 ${suffix}`;
+}
 
 export default function ProfileScreen() {
   const { identities } = useIdentitiesContext();
   const { isProUser, showPaywall, showCustomerCenter, restorePurchases } = useRevenueCat();
-
   const { habitCount, daysActive } = useMemo(() => {
     const allLogs: { date: string }[] = [];
     let habits = 0;
@@ -32,9 +44,12 @@ export default function ProfileScreen() {
   }, [identities]);
 
   const [notificationsOn, setNotificationsOn] = useState(true);
+  const [timings, setTimings] = useState<Record<Timing, number> | null>(null);
+  const [editingTiming, setEditingTiming] = useState<Timing | null>(null);
 
   useEffect(() => {
     getNotificationsEnabled().then(setNotificationsOn);
+    getNotificationTimings().then(setTimings);
   }, []);
 
   const toggleNotifications = async (value: boolean) => {
@@ -42,6 +57,32 @@ export default function ProfileScreen() {
     await setNotificationsEnabled(value);
     if (value) {
       await scheduleHabitNotifications(identities);
+    }
+  };
+
+  const updateTimingHour = async (timing: Timing, hour: number) => {
+    const updated = { ...timings!, [timing]: hour };
+    setTimings(updated);
+    await setNotificationTimings(updated);
+    await scheduleHabitNotifications(identities);
+    setEditingTiming(null);
+  };
+
+  const handleExportData = async () => {
+    try {
+      const json = JSON.stringify(identities, null, 2);
+      const date = new Date().toISOString().slice(0, 10);
+      const path = `${cacheDirectory}habitly-export-${date}.json`;
+      await writeAsStringAsync(path, json);
+
+      const canShare = await Sharing.isAvailableAsync();
+      if (canShare) {
+        await Sharing.shareAsync(path, { mimeType: 'application/json' });
+      } else {
+        Alert.alert('Export Ready', 'Sharing is not available on this device.');
+      }
+    } catch {
+      Alert.alert('Error', 'Could not export data. Please try again.');
     }
   };
 
@@ -93,6 +134,8 @@ export default function ProfileScreen() {
 
         {/* Settings section */}
         <Text className="mb-3 mt-6 text-sm font-semibold text-neutral-400">SETTINGS</Text>
+
+        {/* Notifications toggle */}
         <View className="mb-3 flex-row items-center justify-between rounded-2xl bg-neutral-800 px-4 py-4">
           <Text className="text-base font-semibold text-white">Notifications</Text>
           <Switch
@@ -103,6 +146,28 @@ export default function ProfileScreen() {
           />
         </View>
 
+        {/* Notification timing customization */}
+        {notificationsOn && timings && (
+          <View className="mb-3 rounded-2xl bg-neutral-800 px-4 py-4">
+            <Text className="mb-3 text-xs font-semibold text-neutral-400">NOTIFICATION TIMES</Text>
+            {Object.values(Timing).map((t) => (
+              <Pressable
+                key={t}
+                onPress={() => setEditingTiming(t)}
+                className="flex-row items-center justify-between py-2">
+                <Text className="text-sm text-white">{t}</Text>
+                <Text className="text-sm text-blue-500">{formatHour(timings[t])}</Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
+
+        {/* Data export */}
+        <Pressable onPress={handleExportData} className="mb-3 rounded-2xl bg-neutral-800 px-4 py-4">
+          <Text className="text-base font-semibold text-white">Export Data</Text>
+          <Text className="text-xs text-neutral-400">Download your habit data as JSON</Text>
+        </Pressable>
+
         {/* Subscription section */}
         <Text className="mb-3 mt-6 text-sm font-semibold text-neutral-400">SUBSCRIPTION</Text>
         {isProUser ? (
@@ -111,9 +176,7 @@ export default function ProfileScreen() {
               <Text className="mr-2 text-lg">&#x2B50;</Text>
               <Text className="text-base font-semibold text-white">Habitly Pro</Text>
             </View>
-            <Pressable
-              onPress={showCustomerCenter}
-              className="rounded-full bg-neutral-700 py-3">
+            <Pressable onPress={showCustomerCenter} className="rounded-full bg-neutral-700 py-3">
               <Text className="text-center text-sm font-semibold text-white">
                 Manage Subscription
               </Text>
@@ -136,7 +199,7 @@ export default function ProfileScreen() {
               Alert.alert('Error', 'Could not restore purchases. Please try again.');
             }
           }}
-          className="mt-3 mb-2">
+          className="mb-2 mt-3">
           <Text className="text-center text-sm text-neutral-400">Restore Purchases</Text>
         </Pressable>
 
@@ -149,6 +212,42 @@ export default function ProfileScreen() {
 
         <View className="h-24" />
       </ScrollView>
+
+      {/* Hour picker modal */}
+      <Modal
+        visible={editingTiming !== null}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setEditingTiming(null)}>
+        <Pressable className="flex-1 bg-black/50" onPress={() => setEditingTiming(null)} />
+
+        <View className="rounded-t-3xl bg-neutral-900 px-6 py-6">
+          <Text className="mb-4 text-center text-lg font-bold text-white">
+            {editingTiming} Notification Time
+          </Text>
+
+          <ScrollView style={{ maxHeight: 300 }} showsVerticalScrollIndicator={false}>
+            {HOURS.map((h) => {
+              const isActive = editingTiming && timings ? timings[editingTiming] === h : false;
+
+              return (
+                <Pressable
+                  key={h}
+                  onPress={() => editingTiming && updateTimingHour(editingTiming, h)}
+                  className={`mb-2 rounded-xl px-4 py-3 ${isActive ? 'bg-blue-500' : 'bg-neutral-800'}`}>
+                  <Text className={`text-center text-base ${isActive ? 'font-bold text-white' : 'text-neutral-300'}`}>
+                    {formatHour(h)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+
+          <Pressable onPress={() => setEditingTiming(null)} className="mt-4 py-3">
+            <Text className="text-center text-neutral-400">Cancel</Text>
+          </Pressable>
+        </View>
+      </Modal>
     </View>
   );
 }

@@ -15,13 +15,13 @@ const HabitRow = forwardRef<View, {
     if (habit.checkedToday) {
       Animated.sequence([
         Animated.timing(scale, {
-          toValue: 1.03,
-          duration: 120,
+          toValue: 1.08,
+          duration: 200,
           useNativeDriver: true,
         }),
         Animated.timing(scale, {
           toValue: 1,
-          duration: 120,
+          duration: 200,
           useNativeDriver: true,
         }),
       ]).start();
@@ -44,10 +44,11 @@ const HabitRow = forwardRef<View, {
         }`}>
         {/* Status indicator */}
         <View
-          className={`mr-4 h-6 w-6 rounded-full border ${
+          className={`mr-4 h-6 w-6 items-center justify-center rounded-full border ${
             habit.checkedToday ? 'border-green-300 bg-green-300' : 'border-neutral-600'
-          }`}
-        />
+          }`}>
+          {habit.checkedToday && <Text className="text-xs text-green-900">&#x2713;</Text>}
+        </View>
 
         {/* Icon */}
         <Text className="mr-3 text-xl">{habit.icon ?? '🙂'}</Text>

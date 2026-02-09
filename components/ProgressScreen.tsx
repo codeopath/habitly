@@ -2,9 +2,13 @@ import { View, Text, ScrollView, Pressable } from 'react-native';
 import { useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useIdentitiesContext } from '../context/IdentitiesContext';
+import { useRevenueCat } from '../context/RevenueCatContext';
 
-/** Calculate streak with 1 grace day allowed */
-function calcStreak(logDates: Set<string>): { streak: number; restDays: number } {
+/** Calculate streak — allowGrace enables 1 grace day (Pro feature) */
+function calcStreak(
+  logDates: Set<string>,
+  allowGrace = true
+): { streak: number; restDays: number } {
   const today = new Date();
   let streak = 0;
   let misses = 0;
@@ -20,7 +24,7 @@ function calcStreak(logDates: Set<string>): { streak: number; restDays: number }
       misses = 0;
     } else {
       misses++;
-      if (misses > 1) break;
+      if (!allowGrace || misses > 1) break;
       // Grace day — only count as rest if there are more active days after
       restDays++;
     }
@@ -46,6 +50,7 @@ function getMondayOfWeek(date: Date): string {
 
 export default function ProgressScreen() {
   const { identities } = useIdentitiesContext();
+  const { isProUser, showPaywall } = useRevenueCat();
   const [showWeeklySummary, setShowWeeklySummary] = useState(false);
 
   const allHabits = useMemo(() => identities.flatMap((i) => i.habits), [identities]);
@@ -66,30 +71,31 @@ export default function ProgressScreen() {
     setShowWeeklySummary(false);
   };
 
-  const { weekData, currentStreak, currentRestDays, totalCompletions, totalMinutes } = useMemo(() => {
-    const today = new Date();
-    const days: { label: string; count: number; date: string }[] = [];
+  const { weekData, currentStreak, currentRestDays, totalCompletions, totalMinutes } =
+    useMemo(() => {
+      const today = new Date();
+      const days: { label: string; count: number; date: string }[] = [];
 
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().slice(0, 10);
-      const dayLabel = d.toLocaleDateString('en-US', { weekday: 'short' });
-      const count = allLogs.filter((l) => l.date === dateStr).length;
-      days.push({ label: dayLabel, count, date: dateStr });
-    }
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().slice(0, 10);
+        const dayLabel = d.toLocaleDateString('en-US', { weekday: 'short' });
+        const count = allLogs.filter((l) => l.date === dateStr).length;
+        days.push({ label: dayLabel, count, date: dateStr });
+      }
 
-    const logDates = new Set(allLogs.map((l) => l.date));
-    const { streak, restDays } = calcStreak(logDates);
+      const logDates = new Set(allLogs.map((l) => l.date));
+      const { streak, restDays } = calcStreak(logDates, isProUser);
 
-    return {
-      weekData: days,
-      currentStreak: streak,
-      currentRestDays: restDays,
-      totalCompletions: allLogs.length,
-      totalMinutes: allLogs.reduce((sum, l) => sum + (l.duration ?? 0), 0),
-    };
-  }, [allLogs]);
+      return {
+        weekData: days,
+        currentStreak: streak,
+        currentRestDays: restDays,
+        totalCompletions: allLogs.length,
+        totalMinutes: allLogs.reduce((sum, l) => sum + (l.duration ?? 0), 0),
+      };
+    }, [allLogs, isProUser]);
 
   // Weekly summary data (last 7 days)
   const weeklySummary = useMemo(() => {
@@ -113,10 +119,12 @@ export default function ProgressScreen() {
     return allHabits.map((h) => {
       const logs = h.logs ?? [];
       const dates = toDateSet(logs);
-      const { streak, restDays } = calcStreak(dates);
+      const { streak, restDays } = calcStreak(dates, isProUser);
 
       const firstLog =
-        logs.length > 0 ? logs.reduce((min, l) => (l.date < min ? l.date : min), logs[0].date) : null;
+        logs.length > 0
+          ? logs.reduce((min, l) => (l.date < min ? l.date : min), logs[0].date)
+          : null;
       let rate = 0;
       if (firstLog) {
         const daysSinceFirst = Math.max(
@@ -126,9 +134,17 @@ export default function ProgressScreen() {
         rate = Math.round((dates.size / daysSinceFirst) * 100);
       }
 
-      return { id: h.id, icon: h.icon, label: h.label, streak, restDays, rate, completions: logs.length };
+      return {
+        id: h.id,
+        icon: h.icon,
+        label: h.label,
+        streak,
+        restDays,
+        rate,
+        completions: logs.length,
+      };
     });
-  }, [allHabits]);
+  }, [allHabits, isProUser]);
 
   if (allLogs.length === 0) {
     return (
@@ -148,35 +164,50 @@ export default function ProgressScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Weekly summary card */}
-        {showWeeklySummary && (
-          <View className="mb-6 rounded-2xl bg-blue-500/10 p-4">
-            <View className="mb-3 flex-row items-center justify-between">
-              <Text className="text-sm font-semibold text-blue-400">WEEKLY SUMMARY</Text>
-              <Pressable onPress={dismissWeeklySummary}>
-                <Text className="text-sm text-neutral-400">Dismiss</Text>
-              </Pressable>
-            </View>
+        {showWeeklySummary &&
+          (isProUser ? (
+            <View className="mb-6 rounded-2xl bg-blue-500/10 p-4">
+              <View className="mb-3 flex-row items-center justify-between">
+                <Text className="text-sm font-semibold text-blue-400">WEEKLY SUMMARY</Text>
+                <Pressable onPress={dismissWeeklySummary}>
+                  <Text className="text-sm text-neutral-400">Dismiss</Text>
+                </Pressable>
+              </View>
 
-            <View className="flex-row gap-3">
-              <View className="flex-1 items-center rounded-xl bg-neutral-800 py-3">
-                <Text className="text-xl font-bold text-blue-500">{weeklySummary.totalForWeek}</Text>
-                <Text className="text-xs text-neutral-400">Completions</Text>
+              <View className="flex-row gap-3">
+                <View className="flex-1 items-center rounded-xl bg-neutral-800 py-3">
+                  <Text className="text-xl font-bold text-blue-500">
+                    {weeklySummary.totalForWeek}
+                  </Text>
+                  <Text className="text-xs text-neutral-400">Completions</Text>
+                </View>
+                <View className="flex-1 items-center rounded-xl bg-neutral-800 py-3">
+                  <Text className="text-xl font-bold text-blue-500">{weeklySummary.rate}%</Text>
+                  <Text className="text-xs text-neutral-400">Rate</Text>
+                </View>
+                <View className="flex-1 items-center rounded-xl bg-neutral-800 py-3">
+                  <Text className="text-xl font-bold text-blue-500">{weeklySummary.totalMin}</Text>
+                  <Text className="text-xs text-neutral-400">Minutes</Text>
+                </View>
               </View>
-              <View className="flex-1 items-center rounded-xl bg-neutral-800 py-3">
-                <Text className="text-xl font-bold text-blue-500">{weeklySummary.rate}%</Text>
-                <Text className="text-xs text-neutral-400">Rate</Text>
-              </View>
-              <View className="flex-1 items-center rounded-xl bg-neutral-800 py-3">
-                <Text className="text-xl font-bold text-blue-500">{weeklySummary.totalMin}</Text>
-                <Text className="text-xs text-neutral-400">Minutes</Text>
-              </View>
-            </View>
 
-            <Text className="mt-3 text-center text-xs text-neutral-400">
-              Best day: {weeklySummary.bestDay}
-            </Text>
-          </View>
-        )}
+              <Text className="mt-3 text-center text-xs text-neutral-400">
+                Best day: {weeklySummary.bestDay}
+              </Text>
+            </View>
+          ) : (
+            <Pressable
+              onPress={showPaywall}
+              className="mb-6 items-center rounded-2xl bg-blue-500/10 p-4">
+              <View className="mb-2 flex-row items-center">
+                <Text className="mr-2 text-sm font-semibold text-blue-400">WEEKLY SUMMARY</Text>
+                <Text className="text-xs font-bold text-amber-400">PRO</Text>
+              </View>
+              <Text className="text-sm text-neutral-400">
+                Upgrade to Pro to see your weekly insights
+              </Text>
+            </Pressable>
+          ))}
 
         {/* Weekly bar chart */}
         <View className="mb-6 rounded-2xl bg-neutral-800 p-4">
@@ -197,12 +228,17 @@ export default function ProgressScreen() {
 
         {/* Stats row */}
         <View className="mb-6 flex-row gap-3">
-          <View className="flex-1 items-center rounded-2xl bg-neutral-800 py-4">
+          <Pressable
+            onPress={!isProUser ? showPaywall : undefined}
+            className="flex-1 items-center rounded-2xl bg-neutral-800 py-4">
             <Text className="text-2xl font-bold text-blue-500">{currentStreak}</Text>
             <Text className="text-xs text-neutral-400">
               Day Streak{currentRestDays > 0 ? ` (${currentRestDays} rest)` : ''}
             </Text>
-          </View>
+            {!isProUser && (
+              <Text className="mt-1 text-xs font-bold text-amber-400">PRO rest days</Text>
+            )}
+          </Pressable>
           <View className="flex-1 items-center rounded-2xl bg-neutral-800 py-4">
             <Text className="text-2xl font-bold text-blue-500">{totalCompletions}</Text>
             <Text className="text-xs text-neutral-400">Completions</Text>
@@ -216,15 +252,17 @@ export default function ProgressScreen() {
         {/* Per-habit breakdown */}
         <Text className="mb-3 text-sm font-semibold text-neutral-400">PER HABIT</Text>
         {habitBreakdowns.map((h) => (
-          <View key={h.id} className="mb-3 flex-row items-center rounded-2xl bg-neutral-800 px-4 py-4">
+          <View
+            key={h.id}
+            className="mb-3 flex-row items-center rounded-2xl bg-neutral-800 px-4 py-4">
             <Text className="mr-3 text-xl">{h.icon ?? '🙂'}</Text>
             <View className="flex-1">
               <Text className="text-base font-semibold text-white" numberOfLines={1}>
                 {h.label}
               </Text>
               <Text className="text-xs text-neutral-400">
-                {h.streak} day streak{h.restDays > 0 ? ` (${h.restDays} rest)` : ''} · {h.completions}{' '}
-                total
+                {h.streak} day streak{h.restDays > 0 ? ` (${h.restDays} rest)` : ''} ·{' '}
+                {h.completions} total
               </Text>
             </View>
             <Text className="text-sm font-semibold text-blue-500">{h.rate}%</Text>

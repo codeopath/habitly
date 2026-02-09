@@ -149,11 +149,20 @@ export default function ProfileScreen() {
         {/* Notification timing customization */}
         {notificationsOn && timings && (
           <View className="mb-3 rounded-2xl bg-neutral-800 px-4 py-4">
-            <Text className="mb-3 text-xs font-semibold text-neutral-400">NOTIFICATION TIMES</Text>
+            <View className="mb-3 flex-row items-center justify-between">
+              <Text className="text-xs font-semibold text-neutral-400">NOTIFICATION TIMES</Text>
+              {!isProUser && <Text className="text-xs font-bold text-amber-400">PRO</Text>}
+            </View>
             {Object.values(Timing).map((t) => (
               <Pressable
                 key={t}
-                onPress={() => setEditingTiming(t)}
+                onPress={async () => {
+                  if (!isProUser) {
+                    await showPaywall();
+                    return;
+                  }
+                  setEditingTiming(t);
+                }}
                 className="flex-row items-center justify-between py-2">
                 <Text className="text-sm text-white">{t}</Text>
                 <Text className="text-sm text-blue-500">{formatHour(timings[t])}</Text>
@@ -163,8 +172,19 @@ export default function ProfileScreen() {
         )}
 
         {/* Data export */}
-        <Pressable onPress={handleExportData} className="mb-3 rounded-2xl bg-neutral-800 px-4 py-4">
-          <Text className="text-base font-semibold text-white">Export Data</Text>
+        <Pressable
+          onPress={async () => {
+            if (!isProUser) {
+              await showPaywall();
+              return;
+            }
+            await handleExportData();
+          }}
+          className="mb-3 rounded-2xl bg-neutral-800 px-4 py-4">
+          <View className="flex-row items-center justify-between">
+            <Text className="text-base font-semibold text-white">Export Data</Text>
+            {!isProUser && <Text className="text-xs font-bold text-amber-400">PRO</Text>}
+          </View>
           <Text className="text-xs text-neutral-400">Download your habit data as JSON</Text>
         </Pressable>
 
@@ -235,7 +255,8 @@ export default function ProfileScreen() {
                   key={h}
                   onPress={() => editingTiming && updateTimingHour(editingTiming, h)}
                   className={`mb-2 rounded-xl px-4 py-3 ${isActive ? 'bg-blue-500' : 'bg-neutral-800'}`}>
-                  <Text className={`text-center text-base ${isActive ? 'font-bold text-white' : 'text-neutral-300'}`}>
+                  <Text
+                    className={`text-center text-base ${isActive ? 'font-bold text-white' : 'text-neutral-300'}`}>
                     {formatHour(h)}
                   </Text>
                 </Pressable>

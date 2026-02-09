@@ -1,6 +1,7 @@
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { useMemo, useState } from 'react';
 import { useIdentitiesContext } from '../context/IdentitiesContext';
+import { useRevenueCat } from '../context/RevenueCatContext';
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -13,6 +14,7 @@ function getIntensityClass(count: number): string {
 
 export default function HistoryScreen() {
   const { identities } = useIdentitiesContext();
+  const { isProUser, showPaywall } = useRevenueCat();
   const [monthOffset, setMonthOffset] = useState(0);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
@@ -59,7 +61,14 @@ export default function HistoryScreen() {
       total += logCountByDate.get(dateStr) ?? 0;
     }
 
-    return { year: y, month: m, monthLabel: label, daysInMonth: daysCount, startDayOfWeek: startDay, totalForMonth: total };
+    return {
+      year: y,
+      month: m,
+      monthLabel: label,
+      daysInMonth: daysCount,
+      startDayOfWeek: startDay,
+      totalForMonth: total,
+    };
   }, [monthOffset, logCountByDate]);
 
   // Build calendar grid cells
@@ -107,8 +116,17 @@ export default function HistoryScreen() {
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Month navigation */}
         <View className="mb-2 flex-row items-center justify-between">
-          <Pressable onPress={() => setMonthOffset((o) => o - 1)} className="px-3 py-2">
+          <Pressable
+            onPress={async () => {
+              if (!isProUser) {
+                await showPaywall();
+                return;
+              }
+              setMonthOffset((o) => o - 1);
+            }}
+            className="flex-row items-center px-3 py-2">
             <Text className="text-xl text-white">←</Text>
+            {!isProUser && <Text className="ml-1 text-xs font-bold text-amber-400">PRO</Text>}
           </Pressable>
 
           <View className="items-center">

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
 import * as Crypto from 'expo-crypto';
 import { useIdentitiesContext } from '../context/IdentitiesContext';
+import { useRevenueCat } from '../context/RevenueCatContext';
 import { fetchIdentities } from '../api/identities';
 import { Identity } from '../model/types';
 
@@ -11,6 +12,8 @@ const ICONS = ['🙂', '💪', '📘', '🧠', '🎯', '🌱', '❤️'];
 export default function AddIdentityRoute() {
   const router = useRouter();
   const { addIdentity, identities: userIdentities } = useIdentitiesContext();
+  const { isProUser, showPaywall } = useRevenueCat();
+  const FREE_IDENTITY_LIMIT = 3;
 
   const [label, setLabel] = useState('');
   const [icon, setIcon] = useState('🙂');
@@ -33,11 +36,22 @@ export default function AddIdentityRoute() {
           <Text className="text-base text-neutral-400">Cancel</Text>
         </Pressable>
 
-        <Text className="text-lg font-bold text-white">Add Identity</Text>
+        <View className="items-center">
+          <Text className="text-lg font-bold text-white">Add Identity</Text>
+          {!isProUser && (
+            <Text className="text-xs text-neutral-500">
+              {userIdentities.length}/{FREE_IDENTITY_LIMIT} identities
+            </Text>
+          )}
+        </View>
 
         <Pressable
           disabled={!canSave}
-          onPress={() => {
+          onPress={async () => {
+            if (!isProUser && userIdentities.length >= FREE_IDENTITY_LIMIT) {
+              await showPaywall();
+              return;
+            }
             addIdentity({
               id: Crypto.randomUUID(),
               label: label.trim(),
@@ -66,7 +80,11 @@ export default function AddIdentityRoute() {
               {templateIdentities.map((t) => (
                 <Pressable
                   key={t.id}
-                  onPress={() => {
+                  onPress={async () => {
+                    if (!isProUser && userIdentities.length >= FREE_IDENTITY_LIMIT) {
+                      await showPaywall();
+                      return;
+                    }
                     addIdentity({
                       id: Crypto.randomUUID(),
                       label: t.label,
